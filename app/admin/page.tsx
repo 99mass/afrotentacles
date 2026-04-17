@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { articles as initialArticles, regions, tags } from "@/lib/data"
+import { articles as initialArticles, categories } from "@/lib/data"
 import { formatDate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash2, Eye, PlusCircle, Lock, Star } from "lucide-react"
+import { Pencil, Trash2, Eye, PlusCircle } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,11 +20,11 @@ import {
 
 export default function AdminDashboard() {
   const [articles, setArticles] = useState(initialArticles)
-  const [filterRegion, setFilterRegion] = useState("")
+  const [filterCategory, setFilterCategory] = useState("")
   const [filterStatus, setFilterStatus] = useState("")
 
   const filteredArticles = articles.filter((article) => {
-    if (filterRegion && article.regionSlug !== filterRegion) return false
+    if (filterCategory && article.categorySlug !== filterCategory) return false
     if (filterStatus && article.status !== filterStatus) return false
     return true
   })
@@ -62,28 +62,28 @@ export default function AdminDashboard() {
           <div className="text-sm text-muted-foreground">Brouillons</div>
         </div>
         <div className="bg-background p-4 border border-border">
-          <div className="text-2xl font-bold">{articles.filter(a => a.isSpotlight).length}</div>
-          <div className="text-sm text-muted-foreground">Spotlights</div>
+          <div className="text-2xl font-bold">{categories.length}</div>
+          <div className="text-sm text-muted-foreground">Catégories</div>
         </div>
         <div className="bg-background p-4 border border-border">
-          <div className="text-2xl font-bold">{articles.filter(a => a.isSubscribersOnly).length}</div>
-          <div className="text-sm text-muted-foreground">Abonnés</div>
+          <div className="text-2xl font-bold">{articles.filter(a => a.media && a.media.length > 0).length}</div>
+          <div className="text-sm text-muted-foreground">Avec médias</div>
         </div>
       </div>
 
       {/* Filters */}
       <div className="bg-background p-4 border border-border mb-6 flex flex-wrap gap-4">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium">Région:</label>
+          <label className="text-sm font-medium">Catégorie:</label>
           <select
-            value={filterRegion}
-            onChange={(e) => setFilterRegion(e.target.value)}
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
             className="px-3 py-2 border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="">Toutes</option>
-            {regions.map((region) => (
-              <option key={region.slug} value={region.slug}>
-                {region.name}
+            {categories.map((category) => (
+              <option key={category.slug} value={category.slug}>
+                {category.name}
               </option>
             ))}
           </select>
@@ -112,7 +112,7 @@ export default function AdminDashboard() {
                   Titre
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden md:table-cell">
-                  Région
+                  Catégorie
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden lg:table-cell">
                   Date
@@ -133,35 +133,22 @@ export default function AdminDashboard() {
                       <div className="flex-1">
                         <div className="font-medium line-clamp-1">{article.title}</div>
                         <div className="text-sm text-muted-foreground md:hidden mt-1">
-                          {article.region}
+                          {article.category}
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          {article.isSpotlight && (
-                            <span className="inline-flex items-center gap-1 text-xs text-primary">
-                              <Star className="h-3 w-3" />
-                              Spotlight
-                            </span>
-                          )}
-                          {article.isSubscribersOnly && (
-                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                              <Lock className="h-3 w-3" />
-                              Abonnés
-                            </span>
-                          )}
-                          {article.isBrief && (
+                        {article.media && article.media.length > 0 && (
+                          <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs text-muted-foreground">
-                              En bref
+                              {article.media.filter(m => m.type === "image").length} image(s),{" "}
+                              {article.media.filter(m => m.type === "video").length} vidéo(s),{" "}
+                              {article.media.filter(m => m.type === "pdf").length} PDF(s)
                             </span>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-4 hidden md:table-cell">
-                    <span className="text-sm">{article.region}</span>
-                    {article.country && (
-                      <span className="text-xs text-muted-foreground block">{article.country}</span>
-                    )}
+                    <span className="text-sm">{article.category}</span>
                   </td>
                   <td className="px-4 py-4 hidden lg:table-cell">
                     <span className="text-sm text-muted-foreground">

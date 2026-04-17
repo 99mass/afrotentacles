@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { regions, tags as availableTags, type Article, type MediaItem } from "@/lib/data"
+import { categories, type Article, type MediaItem } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Save, Upload, Plus, Trash2, Image, Video, FileText } from "lucide-react"
+import { ArrowLeft, Save, Upload, Trash2, Image, Video, FileText } from "lucide-react"
 import Link from "next/link"
 
 interface ArticleEditorProps {
@@ -21,18 +21,12 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
   
   const [formData, setFormData] = useState({
     title: article?.title || "",
-    subtitle: article?.subtitle || "",
     excerpt: article?.excerpt || "",
     content: article?.content || "",
-    region: article?.regionSlug || regions[0].slug,
-    country: article?.country || "",
-    tags: article?.tags || [],
+    category: article?.categorySlug || categories[0].slug,
     image: article?.image || "",
     author: article?.author || "",
     status: article?.status || "draft",
-    isSpotlight: article?.isSpotlight || false,
-    isBrief: article?.isBrief || false,
-    isSubscribersOnly: article?.isSubscribersOnly || false,
   })
 
   const [media, setMedia] = useState<MediaItem[]>(article?.media || [])
@@ -40,22 +34,8 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value, type } = e.target
-    if (type === "checkbox") {
-      const checked = (e.target as HTMLInputElement).checked
-      setFormData((prev) => ({ ...prev, [name]: checked }))
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }))
-    }
-  }
-
-  const handleTagToggle = (tag: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      tags: prev.tags.includes(tag)
-        ? prev.tags.filter((t) => t !== tag)
-        : [...prev.tags, tag],
-    }))
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const addMedia = (type: "image" | "video" | "pdf") => {
@@ -119,21 +99,6 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
           />
         </div>
 
-        {/* Subtitle (Country) */}
-        <div className="space-y-2">
-          <Label htmlFor="subtitle">Sous-titre / Pays</Label>
-          <Input
-            id="subtitle"
-            name="subtitle"
-            value={formData.subtitle}
-            onChange={handleChange}
-            placeholder="Ex: Niger, Maroc, RDC..."
-          />
-          <p className="text-xs text-muted-foreground">
-            Affiché au-dessus du titre (style Africa Intelligence)
-          </p>
-        </div>
-
         {/* Author */}
         <div className="space-y-2">
           <Label htmlFor="author">Auteur *</Label>
@@ -147,34 +112,24 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
           />
         </div>
 
-        {/* Region, Country, Status */}
-        <div className="grid md:grid-cols-3 gap-4">
+        {/* Category and Status */}
+        <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="region">Région *</Label>
+            <Label htmlFor="category">Catégorie *</Label>
             <select
-              id="region"
-              name="region"
-              value={formData.region}
+              id="category"
+              name="category"
+              value={formData.category}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               required
             >
-              {regions.map((region) => (
-                <option key={region.slug} value={region.slug}>
-                  {region.name}
+              {categories.map((category) => (
+                <option key={category.slug} value={category.slug}>
+                  {category.name}
                 </option>
               ))}
             </select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="country">Pays</Label>
-            <Input
-              id="country"
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-              placeholder="Ex: Nigeria"
-            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="status">Statut *</Label>
@@ -189,64 +144,6 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
               <option value="draft">Brouillon</option>
               <option value="published">Publié</option>
             </select>
-          </div>
-        </div>
-
-        {/* Article Type Checkboxes */}
-        <div className="space-y-2">
-          <Label>Type d&apos;article</Label>
-          <div className="flex flex-wrap gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                name="isSpotlight"
-                checked={formData.isSpotlight}
-                onChange={handleChange}
-                className="rounded border-border"
-              />
-              <span className="text-sm">Spotlight (article vedette)</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                name="isBrief"
-                checked={formData.isBrief}
-                onChange={handleChange}
-                className="rounded border-border"
-              />
-              <span className="text-sm">En bref (brève)</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                name="isSubscribersOnly"
-                checked={formData.isSubscribersOnly}
-                onChange={handleChange}
-                className="rounded border-border"
-              />
-              <span className="text-sm">Réservé aux abonnés</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Tags */}
-        <div className="space-y-2">
-          <Label>Tags *</Label>
-          <div className="flex flex-wrap gap-2">
-            {availableTags.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => handleTagToggle(tag)}
-                className={`px-3 py-1 text-sm border transition-colors ${
-                  formData.tags.includes(tag)
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background border-border hover:border-primary"
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
           </div>
         </div>
 
@@ -367,7 +264,7 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
 
           {media.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              Ajoutez des images, vidéos ou documents PDF supplémentaires à votre article.
+              Ajoutez des images, vidéos YouTube ou documents PDF supplémentaires à votre article.
             </p>
           )}
         </div>

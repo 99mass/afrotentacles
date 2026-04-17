@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/utils"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { Twitter, Linkedin, Facebook, FileText, Lock, Download } from "lucide-react"
+import { Twitter, Linkedin, Facebook, FileText, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface ArticlePageProps {
@@ -69,34 +69,17 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <Link href="/" className="hover:text-primary transition-colors">Accueil</Link>
                 <span className="mx-2">/</span>
                 <Link 
-                  href={`/region/${article.regionSlug}`} 
+                  href={`/categorie/${article.categorySlug}`} 
                   className="hover:text-primary transition-colors"
                 >
-                  {article.region}
+                  {article.category}
                 </Link>
               </nav>
               
-              {/* Country/Subtitle */}
-              {article.subtitle && (
-                <span className="inline-block text-sm font-semibold uppercase tracking-wider text-primary mb-3">
-                  {article.subtitle}
-                </span>
-              )}
-              
-              {/* Spotlight badge */}
-              {article.isSpotlight && (
-                <span className="inline-block bg-primary text-primary-foreground px-2 py-0.5 text-xs font-semibold uppercase mr-3 mb-3">
-                  Spotlight
-                </span>
-              )}
-              
-              {/* Subscribers only badge */}
-              {article.isSubscribersOnly && (
-                <span className="inline-flex items-center gap-1 text-sm text-primary mb-3">
-                  <Lock className="h-3 w-3" />
-                  Réservé aux abonnés
-                </span>
-              )}
+              {/* Category tag */}
+              <span className="inline-block text-sm font-semibold uppercase tracking-wider text-primary mb-3">
+                {article.category}
+              </span>
               
               <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-balance">
                 {article.title}
@@ -105,19 +88,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <p className="text-lg text-muted-foreground mt-4 max-w-3xl leading-relaxed">
                 {article.excerpt}
               </p>
-              
-              {/* Tags */}
-              <div className="flex flex-wrap items-center gap-2 mt-4">
-                {article.tags.map((tag) => (
-                  <Link 
-                    key={tag}
-                    href={`/tag/${tag.toLowerCase()}`}
-                    className="text-xs font-medium text-primary hover:underline"
-                  >
-                    {tag}
-                  </Link>
-                ))}
-              </div>
               
               {/* Meta info */}
               <div className="flex flex-wrap items-center gap-4 mt-6 text-sm text-muted-foreground">

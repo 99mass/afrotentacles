@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Twitter, Linkedin, Facebook, Send } from "lucide-react"
-import { regions } from "@/lib/data"
+import { categories } from "@/lib/data"
 
 export function Footer() {
   return (
@@ -39,17 +39,17 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Regions */}
+          {/* Categories */}
           <div>
-            <h3 className="font-semibold text-sm uppercase tracking-wider mb-4">Régions</h3>
+            <h3 className="font-semibold text-sm uppercase tracking-wider mb-4">Catégories</h3>
             <ul className="space-y-2">
-              {regions.map((region) => (
-                <li key={region.slug}>
+              {categories.map((category) => (
+                <li key={category.slug}>
                   <Link
-                    href={`/region/${region.slug}`}
+                    href={`/categorie/${category.slug}`}
                     className="text-sm text-background/70 hover:text-primary transition-colors"
                   >
-                    {region.name}
+                    {category.name}
                   </Link>
                 </li>
               ))}
@@ -68,11 +68,6 @@ export function Footer() {
               <li>
                 <Link href="/a-propos" className="text-sm text-background/70 hover:text-primary transition-colors">
                   À propos
-                </Link>
-              </li>
-              <li>
-                <Link href="/archives" className="text-sm text-background/70 hover:text-primary transition-colors">
-                  Archives
                 </Link>
               </li>
               <li>

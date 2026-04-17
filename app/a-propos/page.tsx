@@ -1,6 +1,6 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { regions } from "@/lib/data"
+import { categories } from "@/lib/data"
 import Link from "next/link"
 import type { Metadata } from "next"
 
@@ -48,28 +48,28 @@ export default function AboutPage() {
                 Inspirés par les standards de l&apos;intelligence économique, nous privilégions une approche rigoureuse qui combine :
               </p>
               <ul className="space-y-2 text-foreground">
-                <li><strong>L&apos;analyse régionale</strong> pour comprendre les spécificités de chaque zone géographique</li>
-                <li><strong>Le décryptage des réseaux</strong> pour identifier les acteurs clés et leurs stratégies</li>
-                <li><strong>La veille sectorielle</strong> sur l&apos;énergie, les mines, la finance et les infrastructures</li>
-                <li><strong>Le suivi politique</strong> des institutions et des transitions de pouvoir</li>
+                <li><strong>L&apos;analyse géoéconomique</strong> pour comprendre les flux financiers et les stratégies économiques</li>
+                <li><strong>Le décryptage géopolitique</strong> pour identifier les rapports de force et les alliances</li>
+                <li><strong>La veille sectorielle</strong> sur l&apos;énergie, les ressources et les infrastructures</li>
+                <li><strong>Le suivi institutionnel</strong> des politiques publiques et des réformes</li>
               </ul>
               
-              <h2 className="font-serif text-2xl font-bold mt-12 mb-4">Nos régions couvertes</h2>
+              <h2 className="font-serif text-2xl font-bold mt-12 mb-4">Nos thématiques</h2>
             </div>
             
-            {/* Regions */}
+            {/* Categories */}
             <div className="grid md:grid-cols-2 gap-4 mt-8">
-              {regions.map((region) => (
+              {categories.map((category) => (
                 <Link
-                  key={region.slug}
-                  href={`/region/${region.slug}`}
+                  key={category.slug}
+                  href={`/categorie/${category.slug}`}
                   className="group p-6 border border-border hover:border-primary transition-colors bg-background"
                 >
                   <h3 className="font-serif text-lg font-bold group-hover:text-primary transition-colors">
-                    {region.name}
+                    {category.name}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-2">
-                    {region.description}
+                    {category.description}
                   </p>
                 </Link>
               ))}
