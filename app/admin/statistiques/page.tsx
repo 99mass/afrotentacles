@@ -250,7 +250,7 @@ export default function StatistiquesPage() {
                     <td className="py-3 px-4 text-right hidden sm:table-cell">
                       <span className="inline-flex items-center gap-1 text-green-600 text-sm">
                         <ArrowUpRight className="h-3 w-3" />
-                        {Math.floor(Math.random() * 20 + 5)}%
+                        +{((index + 1) * 3 + 7)}%
                       </span>
                     </td>
                   </tr>
