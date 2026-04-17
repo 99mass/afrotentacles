@@ -109,10 +109,12 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="w-64 bg-foreground flex-shrink-0 hidden lg:flex flex-col">
+      {/* Desktop sidebar - Fixed position */}
+      <aside className="w-64 bg-foreground flex-shrink-0 hidden lg:flex flex-col fixed left-0 top-0 bottom-0 h-screen overflow-hidden">
         <SidebarContent />
       </aside>
+      {/* Desktop spacer for fixed sidebar */}
+      <div className="hidden lg:block w-64 flex-shrink-0" />
 
       {/* Mobile header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-foreground text-white p-4 flex items-center justify-between">
