@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,21 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [setupDone, setSetupDone] = useState(false)
   const router = useRouter()
+
+  // Setup admin on first load
+  useEffect(() => {
+    const setupAdmin = async () => {
+      try {
+        await fetch("/api/admin/setup", { method: "POST" })
+        setSetupDone(true)
+      } catch {
+        setSetupDone(true)
+      }
+    }
+    setupAdmin()
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -124,11 +138,24 @@ export default function AdminLoginPage() {
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              disabled={loading}
+              disabled={loading || !setupDone}
             >
-              {loading ? "Connexion..." : "Se connecter"}
+              {!setupDone ? "Initialisation..." : loading ? "Connexion..." : "Se connecter"}
             </Button>
           </form>
+
+          {/* Default credentials hint */}
+          <div className="mt-6 p-4 bg-muted rounded-md border border-border">
+            <p className="text-xs text-muted-foreground text-center mb-2">
+              Identifiants par défaut :
+            </p>
+            <p className="text-xs text-foreground text-center font-mono">
+              admin@afrotentacles.com
+            </p>
+            <p className="text-xs text-foreground text-center font-mono">
+              afrotacles@123
+            </p>
+          </div>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">

@@ -1,28 +1,36 @@
 interface LogoProps {
   variant?: "default" | "white"
+  size?: "sm" | "md" | "lg"
   className?: string
 }
 
-export function Logo({ variant = "default", className = "" }: LogoProps) {
+const sizeConfig = {
+  sm: { box: "w-7 h-7", letter: "text-base", name: "text-sm", tagline: "text-[9px]", gap: "mt-1" },
+  md: { box: "w-10 h-10", letter: "text-2xl", name: "text-xl", tagline: "text-xs", gap: "mt-2" },
+  lg: { box: "w-12 h-12", letter: "text-3xl", name: "text-2xl", tagline: "text-sm", gap: "mt-2" },
+}
+
+export function Logo({ variant = "default", size = "md", className = "" }: LogoProps) {
   const isWhite = variant === "white"
+  const s = sizeConfig[size]
   
   return (
     <div className={`flex flex-col items-center ${className}`}>
-      {/* Logo icon - two squares */}
+      {/* Logo icon - two squares (always red A + black T with white letters) */}
       <div className="flex">
-        <div className={`w-10 h-10 flex items-center justify-center ${isWhite ? "bg-white" : "bg-primary"}`}>
-          <span className={`font-serif text-2xl font-bold ${isWhite ? "text-primary" : "text-white"}`}>A</span>
+        <div className={`${s.box} flex items-center justify-center bg-primary`}>
+          <span className={`font-serif ${s.letter} font-bold text-white`}>A</span>
         </div>
-        <div className={`w-10 h-10 flex items-center justify-center ${isWhite ? "bg-white" : "bg-foreground"}`}>
-          <span className={`font-serif text-2xl font-bold ${isWhite ? "text-foreground" : "text-white"}`}>T</span>
+        <div className={`${s.box} flex items-center justify-center bg-black`}>
+          <span className={`font-serif ${s.letter} font-bold text-white`}>T</span>
         </div>
       </div>
       {/* Brand name */}
-      <span className={`font-serif text-xl font-bold mt-2 ${isWhite ? "text-white" : "text-foreground"}`}>
+      <span className={`font-serif ${s.name} font-bold ${s.gap} ${isWhite ? "text-white" : "text-foreground"}`}>
         AfroTentacles
       </span>
       {/* Tagline */}
-      <span className={`text-xs mt-0.5 ${isWhite ? "text-white/70" : "text-muted-foreground"}`}>
+      <span className={`${s.tagline} mt-0.5 ${isWhite ? "text-white/70" : "text-muted-foreground"}`}>
         Comprendre les équilibres africains
       </span>
     </div>

@@ -12,6 +12,11 @@ import {
   ArrowUpRight,
 } from "lucide-react"
 
+// Format number with spaces as thousands separator (consistent between server/client)
+function formatNumber(num: number): string {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")
+}
+
 // Mock statistics data
 const mockStats = {
   totalViews: 6615,
@@ -79,7 +84,7 @@ export default function StatistiquesPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{mockStats.totalViews.toLocaleString()}</div>
+            <div className="text-3xl font-bold">{formatNumber(mockStats.totalViews)}</div>
             <p className={`text-xs mt-1 flex items-center gap-1 ${Number(viewsGrowth) >= 0 ? "text-green-600" : "text-red-600"}`}>
               {Number(viewsGrowth) >= 0 ? (
                 <TrendingUp className="h-3 w-3" />
@@ -99,7 +104,7 @@ export default function StatistiquesPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{mockStats.uniqueVisitors.toLocaleString()}</div>
+            <div className="text-3xl font-bold">{formatNumber(mockStats.uniqueVisitors)}</div>
             <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               +8.3% vs mois dernier
@@ -179,7 +184,7 @@ export default function StatistiquesPage() {
                   <div key={category.slug}>
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span>{category.name}</span>
-                      <span className="font-medium">{views.toLocaleString()} vues</span>
+                      <span className="font-medium">{formatNumber(views)} vues</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                       <div
@@ -240,12 +245,12 @@ export default function StatistiquesPage() {
                       <span className="text-sm text-muted-foreground">{article.category}</span>
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <span className="font-semibold">{article.views.toLocaleString()}</span>
+                      <span className="font-semibold">{formatNumber(article.views)}</span>
                     </td>
                     <td className="py-3 px-4 text-right hidden sm:table-cell">
                       <span className="inline-flex items-center gap-1 text-green-600 text-sm">
                         <ArrowUpRight className="h-3 w-3" />
-                        {Math.floor(Math.random() * 20 + 5)}%
+                        +{((index + 1) * 3 + 7)}%
                       </span>
                     </td>
                   </tr>
