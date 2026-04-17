@@ -123,7 +123,7 @@ export const articles: Article[] = [
       <h2>La concurrence s'intensifie</h2>
       <p>ExxonMobil, Shell et ENI renforcent également leurs positions dans la région, créant une dynamique compétitive intense pour l'accès aux ressources gazières.</p>
     `,
-    image: "https://images.unsplash.com/photo-1518173946687-a4c47d3a9f6a?w=1200&h=800&fit=crop",
+    image: "https://images.unsplash.com/photo-1513828583688-c52646db42da?w=1200&h=800&fit=crop",
     category: "Ressources & Énergie",
     categorySlug: "ressources-energie",
     date: "2026-04-16",
@@ -133,7 +133,7 @@ export const articles: Article[] = [
     media: [
       {
         type: "image",
-        url: "https://images.unsplash.com/photo-1518173946687-a4c47d3a9f6a?w=1200&h=800&fit=crop",
+        url: "https://images.unsplash.com/photo-1513828583688-c52646db42da?w=1200&h=800&fit=crop",
         caption: "Installation gazière offshore"
       },
       {
