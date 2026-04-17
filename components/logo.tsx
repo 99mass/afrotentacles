@@ -16,13 +16,13 @@ export function Logo({ variant = "default", size = "md", className = "" }: LogoP
   
   return (
     <div className={`flex flex-col items-center ${className}`}>
-      {/* Logo icon - two squares */}
+      {/* Logo icon - two squares (always red A + black T with white letters) */}
       <div className="flex">
-        <div className={`${s.box} flex items-center justify-center ${isWhite ? "bg-white" : "bg-primary"}`}>
-          <span className={`font-serif ${s.letter} font-bold ${isWhite ? "text-primary" : "text-white"}`}>A</span>
+        <div className={`${s.box} flex items-center justify-center bg-primary`}>
+          <span className={`font-serif ${s.letter} font-bold text-white`}>A</span>
         </div>
-        <div className={`${s.box} flex items-center justify-center ${isWhite ? "bg-white" : "bg-foreground"}`}>
-          <span className={`font-serif ${s.letter} font-bold ${isWhite ? "text-foreground" : "text-white"}`}>T</span>
+        <div className={`${s.box} flex items-center justify-center bg-black`}>
+          <span className={`font-serif ${s.letter} font-bold text-white`}>T</span>
         </div>
       </div>
       {/* Brand name */}
