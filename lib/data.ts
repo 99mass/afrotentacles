@@ -1,169 +1,328 @@
+export interface MediaItem {
+  type: "image" | "video" | "pdf"
+  url: string
+  caption?: string
+  thumbnail?: string
+}
+
 export interface Article {
   id: string
   title: string
+  subtitle?: string
   excerpt: string
   content: string
   image: string
-  category: string
-  categorySlug: string
+  region: string
+  regionSlug: string
+  country?: string
+  tags: string[]
   date: string
   slug: string
   author: string
-  videoUrl?: string
-  pdfUrl?: string
+  media?: MediaItem[]
+  isSpotlight?: boolean
+  isBrief?: boolean
+  isSubscribersOnly?: boolean
   status: "published" | "draft"
 }
 
-export const categories = [
-  { name: "Géoéconomie", slug: "geoeconomie", description: "Analyse des dynamiques économiques et financières du continent africain" },
-  { name: "Géopolitique", slug: "geopolitique", description: "Décryptage des enjeux politiques et des relations internationales en Afrique" },
-  { name: "Ressources & Énergie", slug: "ressources-energie", description: "Exploration des secteurs miniers, pétroliers et énergétiques" },
-  { name: "Flux & Corridors", slug: "flux-corridors", description: "Étude des flux commerciaux et des corridors économiques" },
-  { name: "Institutions & Politiques publiques", slug: "institutions", description: "Analyse des institutions et des politiques gouvernementales" },
-  { name: "Influences & Puissances", slug: "influences", description: "Cartographie des réseaux d'influence et des puissances en Afrique" },
-  { name: "Données & Insights", slug: "donnees-insights", description: "Données et analyses approfondies sur les tendances africaines" },
+export const regions = [
+  { name: "Le Continent", slug: "continent", description: "Actualités panafricaines et analyses transversales" },
+  { name: "Afrique Centrale", slug: "afrique-centrale", description: "RDC, Cameroun, Gabon, Congo, Tchad, Centrafrique" },
+  { name: "Afrique de l'Ouest", slug: "afrique-ouest", description: "Nigeria, Sénégal, Côte d'Ivoire, Ghana, Mali, Niger, Burkina Faso" },
+  { name: "Afrique de l'Est et Corne", slug: "afrique-est", description: "Kenya, Éthiopie, Tanzanie, Ouganda, Rwanda, Soudan" },
+  { name: "Afrique australe et îles", slug: "afrique-australe", description: "Afrique du Sud, Angola, Mozambique, Zimbabwe, Madagascar" },
+  { name: "Afrique du Nord", slug: "afrique-nord", description: "Maroc, Algérie, Tunisie, Libye, Égypte" },
+]
+
+export const tags = [
+  "Politique",
+  "Finance",
+  "Énergie",
+  "Mines",
+  "Défense",
+  "Diplomatie",
+  "Business",
+  "Infrastructure",
+  "Matières premières",
 ]
 
 export const articles: Article[] = [
   {
     id: "1",
-    title: "L'Afrique de l'Ouest face aux nouveaux enjeux du commerce transsaharien",
-    excerpt: "Une analyse approfondie des mutations des routes commerciales historiques et de leur impact sur les économies sahéliennes contemporaines.",
+    title: "Tchiani jongle face à la crise sécuritaire croissante",
+    subtitle: "Niger",
+    excerpt: "Affaibli par l'avancée des groupes djihadistes, le président peine à rétablir l'ordre au sein de ses forces armées tout en ouvrant discrètement un canal de communication avec les insurgés pour alléger la pression sur la capitale, Niamey.",
     content: `
-      <p>Le commerce transsaharien, longtemps considéré comme une relique du passé, connaît une renaissance inattendue dans le contexte géopolitique actuel. Les routes qui jadis acheminaient l'or, le sel et les esclaves vers les ports méditerranéens se réactivent sous de nouvelles formes.</p>
+      <p>Le général Abdourahamane Tchiani, qui a pris le pouvoir au Niger en juillet 2023, fait face à une situation de plus en plus complexe. L'avancée des groupes djihadistes dans plusieurs régions du pays menace la stabilité du régime militaire.</p>
       
-      <h2>Un héritage historique en mutation</h2>
-      <p>Depuis des millénaires, les caravanes ont façonné les liens économiques et culturels entre le Maghreb et l'Afrique subsaharienne. Aujourd'hui, ces connexions prennent de nouvelles formes, portées par les infrastructures modernes et les accords commerciaux régionaux.</p>
+      <h2>Une pression sécuritaire grandissante</h2>
+      <p>Depuis le retrait des forces françaises et américaines, la situation sécuritaire s'est considérablement dégradée dans les zones frontalières avec le Mali et le Burkina Faso. Les groupes affiliés à l'État islamique et à Al-Qaïda multiplient les attaques contre les positions militaires.</p>
       
-      <h2>Les nouveaux acteurs du commerce transsaharien</h2>
-      <p>La Chine, la Turquie et les Émirats arabes unis s'imposent comme des partenaires incontournables, investissant massivement dans les infrastructures de transport et les zones économiques spéciales.</p>
-      
-      <h2>Défis sécuritaires et opportunités économiques</h2>
-      <p>L'instabilité au Sahel représente un obstacle majeur, mais paradoxalement, elle crée aussi des opportunités pour les acteurs capables de naviguer dans cet environnement complexe.</p>
+      <h2>Des tensions internes au sein de l'armée</h2>
+      <p>Le président fait également face à des frictions au sein de l'institution militaire. Plusieurs officiers supérieurs contestent la stratégie adoptée face aux insurgés.</p>
+
+      <h2>Une ouverture diplomatique discrète</h2>
+      <p>Selon nos informations, des contacts ont été établis avec certains groupes armés dans le but de négocier des cessez-le-feu locaux. Cette stratégie vise à réduire la pression sur Niamey et à permettre au régime de consolider son pouvoir.</p>
     `,
     image: "https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=1200&h=800&fit=crop",
-    category: "Géoéconomie",
-    categorySlug: "geoeconomie",
-    date: "2026-04-15",
-    slug: "afrique-ouest-commerce-transsaharien",
+    region: "Afrique de l'Ouest",
+    regionSlug: "afrique-ouest",
+    country: "Niger",
+    tags: ["Politique", "Défense"],
+    date: "2026-04-17",
+    slug: "niger-tchiani-crise-securitaire",
     author: "Amadou Diallo",
-    status: "published"
+    isSpotlight: true,
+    status: "published",
+    media: [
+      {
+        type: "image",
+        url: "https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=1200&h=800&fit=crop",
+        caption: "Le président nigérien, le général Abdourahamane Tchiani, à Niamey"
+      }
+    ]
   },
   {
     id: "2",
-    title: "Le corridor de Lobito : nouvelle artère économique de l'Afrique australe",
-    excerpt: "Le chemin de fer reliant l'Angola à la RDC et à la Zambie redessine les équilibres logistiques du continent.",
+    title: "Les pays hôtes de la CAN 2027 sommés d'accélérer les préparatifs",
+    subtitle: "Kenya, Tanzanie, Ouganda",
+    excerpt: "Africa Intelligence a pu consulter des extraits d'un rapport d'inspection de l'instance dirigeante du football continental. Sans tirer la sonnette d'alarme, le document souligne un certain nombre de retards et de défaillances qui doivent être corrigés avant l'échéance d'août.",
     content: `
-      <p>Le corridor de Lobito, longtemps négligé, redevient un axe stratégique majeur pour l'évacuation des minerais stratégiques d'Afrique centrale vers les marchés mondiaux.</p>
+      <p>La préparation de la Coupe d'Afrique des Nations 2027, qui doit se tenir conjointement au Kenya, en Tanzanie et en Ouganda, suscite des inquiétudes au sein de la CAF.</p>
       
-      <h2>Une infrastructure stratégique</h2>
-      <p>Avec plus de 1 300 kilomètres de voies ferrées, le corridor connecte les zones minières du Katanga et de la Copperbelt au port de Lobito sur la côte atlantique angolaise.</p>
+      <h2>Des infrastructures en retard</h2>
+      <p>Le rapport d'inspection révèle que plusieurs stades ne répondent pas encore aux normes FIFA. Les travaux de rénovation accusent un retard de plusieurs mois.</p>
       
-      <h2>L'enjeu des minerais critiques</h2>
-      <p>Cuivre, cobalt, lithium : les ressources de cette région sont essentielles pour la transition énergétique mondiale. Le corridor de Lobito offre une alternative aux routes traditionnelles via l'Afrique du Sud ou la Tanzanie.</p>
+      <h2>Les recommandations de la CAF</h2>
+      <p>L'instance africaine demande aux trois pays de mobiliser des ressources supplémentaires et d'accélérer les procédures administratives pour respecter le calendrier.</p>
     `,
-    image: "https://images.unsplash.com/photo-1473445730015-841f29a9490b?w=1200&h=800&fit=crop",
-    category: "Flux & Corridors",
-    categorySlug: "flux-corridors",
-    date: "2026-04-12",
-    slug: "corridor-lobito-afrique-australe",
-    author: "Maria Santos",
-    status: "published"
+    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&h=800&fit=crop",
+    region: "Afrique de l'Est et Corne",
+    regionSlug: "afrique-est",
+    tags: ["Politique", "Infrastructure"],
+    date: "2026-04-17",
+    slug: "can-2027-preparatifs-kenya-tanzanie-ouganda",
+    author: "Sarah Kimani",
+    status: "published",
+    media: [
+      {
+        type: "image",
+        url: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&h=800&fit=crop",
+        caption: "Le stade Talanta de Nairobi, 31 janvier 2026"
+      },
+      {
+        type: "video",
+        url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        caption: "Visite des installations sportives"
+      }
+    ]
   },
   {
     id: "3",
-    title: "La diplomatie énergétique du Sénégal à l'épreuve de la production gazière",
-    excerpt: "Avec l'entrée en production du champ Grand Tortue Ahmeyim, Dakar doit repenser sa stratégie régionale.",
+    title: "La nouvelle stratégie du gendarme financier IGF s'enlise",
+    subtitle: "RDC",
+    excerpt: "Le chef de l'Inspection Générale des Finances a retiré ses agents des entreprises publiques et des institutions étatiques, optant pour une approche systémique de surveillance des flux financiers gouvernementaux. Cette approche se heurte à d'importants obstacles techniques.",
     content: `
-      <p>Le Sénégal entre dans une nouvelle ère avec le démarrage de la production de gaz naturel liquéfié. Cette transformation pose de nouveaux défis diplomatiques et économiques.</p>
+      <p>L'Inspection Générale des Finances de la République Démocratique du Congo traverse une période de transition difficile. La nouvelle stratégie adoptée par son directeur général peine à produire les résultats escomptés.</p>
       
-      <h2>Une ressource partagée</h2>
-      <p>Le champ Grand Tortue Ahmeyim, exploité conjointement avec la Mauritanie, illustre les possibilités de coopération énergétique transfrontalière en Afrique de l'Ouest.</p>
+      <h2>Un changement de paradigme</h2>
+      <p>Plutôt que de maintenir une présence permanente dans les entreprises publiques, l'IGF a opté pour une surveillance à distance des flux financiers. Cette approche devait permettre une meilleure allocation des ressources humaines.</p>
+      
+      <h2>Des obstacles techniques majeurs</h2>
+      <p>La mise en place des outils informatiques nécessaires à cette surveillance systémique accuse un retard important. Les systèmes d'information des différentes entités publiques ne sont pas interconnectés.</p>
     `,
-    image: "https://images.unsplash.com/photo-1518173946687-a4c47d3a9f6a?w=1200&h=800&fit=crop",
-    category: "Ressources & Énergie",
-    categorySlug: "ressources-energie",
-    date: "2026-04-10",
-    slug: "senegal-diplomatie-energetique-gaz",
-    author: "Fatou Sow",
+    image: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=1200&h=800&fit=crop",
+    region: "Afrique Centrale",
+    regionSlug: "afrique-centrale",
+    country: "RDC",
+    tags: ["Finance", "Politique"],
+    date: "2026-04-17",
+    slug: "rdc-igf-strategie-surveillance-financiere",
+    author: "Jean-Baptiste Lukusa",
+    isSubscribersOnly: true,
     status: "published"
   },
   {
     id: "4",
-    title: "L'Union africaine face au défi de la réforme institutionnelle",
-    excerpt: "Entre ambitions panafricaines et réalités nationales, l'UA cherche à renforcer son efficacité.",
+    title: "Ibrahim Traoré entretient des liens avec Israël",
+    subtitle: "Burkina Faso",
+    excerpt: "Le chef de la junte, qui maintient une position fermement anti-occidentale et affiche des liens plus étroits avec Téhéran, entretient simultanément des liens discrets avec Tel-Aviv et son ambassadeur dans la région, dont il vient d'approuver les lettres de créance.",
     content: `
-      <p>L'Union africaine, créée en 2002, peine encore à s'imposer comme un acteur décisif dans la résolution des crises continentales. La question de sa réforme est plus urgente que jamais.</p>
+      <p>La politique étrangère du capitaine Ibrahim Traoré révèle des paradoxes intéressants. Tout en cultivant une rhétorique anti-occidentale, le chef de la junte burkinabè maintient des canaux de communication ouverts avec Israël.</p>
       
-      <h2>Le diagnostic d'Addis-Abeba</h2>
-      <p>Depuis le rapport Kagame de 2017, les propositions de réforme se multiplient. Financement autonome, rationalisation des organes, renforcement des capacités : les chantiers sont nombreux.</p>
+      <h2>Une diplomatie à géométrie variable</h2>
+      <p>Malgré les déclarations publiques de rapprochement avec l'Iran et la Russie, le Burkina Faso n'a pas rompu ses relations avec Tel-Aviv. L'ambassadeur israélien accrédité pour la région a récemment vu ses lettres de créance acceptées.</p>
+      
+      <h2>Des intérêts sécuritaires convergents</h2>
+      <p>Israël dispose d'une expertise en matière de lutte antiterroriste que le Burkina Faso pourrait trouver utile dans le contexte actuel d'insécurité.</p>
     `,
-    image: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=1200&h=800&fit=crop",
-    category: "Institutions & Politiques publiques",
-    categorySlug: "institutions",
-    date: "2026-04-08",
-    slug: "union-africaine-reforme-institutionnelle",
-    author: "Jean-Baptiste Mensah",
-    status: "published"
+    image: "https://images.unsplash.com/photo-1618828665011-0abd973f7bb8?w=1200&h=800&fit=crop",
+    region: "Afrique de l'Ouest",
+    regionSlug: "afrique-ouest",
+    country: "Burkina Faso",
+    tags: ["Politique", "Diplomatie"],
+    date: "2026-04-17",
+    slug: "burkina-faso-traore-israel",
+    author: "Moussa Koné",
+    status: "published",
+    media: [
+      {
+        type: "image",
+        url: "https://images.unsplash.com/photo-1618828665011-0abd973f7bb8?w=1200&h=800&fit=crop",
+        caption: "Le capitaine Ibrahim Traoré à Moscou, mai 2025"
+      },
+      {
+        type: "pdf",
+        url: "/documents/analyse-diplomatie-burkina.pdf",
+        caption: "Analyse complète de la diplomatie burkinabè (PDF)"
+      }
+    ]
   },
   {
     id: "5",
-    title: "Pékin renforce son emprise sur les infrastructures portuaires africaines",
-    excerpt: "De Djibouti à Kribi, les opérateurs chinois multiplient les investissements stratégiques.",
+    title: "TotalEnergies travaille à contrer sa production en baisse constante",
+    subtitle: "Angola",
+    excerpt: "La major française n'a réussi à produire que 156 000 barils équivalent pétrole par jour en 2025, soit une baisse de 37% sur dix ans. La mise en service de deux nouveaux projets d'une capacité combinée de 60 000 barils par jour n'a pas réussi à inverser la tendance.",
     content: `
-      <p>La stratégie maritime chinoise en Afrique s'intensifie, avec des investissements massifs dans les ports, les zones économiques spéciales et les corridors de transport.</p>
+      <p>TotalEnergies fait face à un déclin structurel de sa production en Angola, malgré d'importants investissements dans de nouveaux projets. La major française cherche des solutions pour maintenir sa position dans ce pays stratégique.</p>
+      
+      <h2>Un déclin inexorable</h2>
+      <p>La production angolaise de TotalEnergies a chuté de plus d'un tiers en une décennie. Les champs matures s'épuisent plus rapidement que prévu, tandis que les nouveaux projets peinent à compenser cette baisse.</p>
+      
+      <h2>De nouveaux projets insuffisants</h2>
+      <p>Malgré le démarrage de Kaombo et de Zinia 2, la courbe de production reste orientée à la baisse. L'entreprise étudie de nouvelles options d'exploration en eaux ultra-profondes.</p>
     `,
-    image: "https://images.unsplash.com/photo-1578575436955-ef29da568c6c?w=1200&h=800&fit=crop",
-    category: "Influences & Puissances",
-    categorySlug: "influences",
-    date: "2026-04-05",
-    slug: "chine-infrastructures-portuaires-afrique",
-    author: "Chen Wei",
+    image: "https://images.unsplash.com/photo-1518173946687-a4c47d3a9f6a?w=1200&h=800&fit=crop",
+    region: "Afrique australe et îles",
+    regionSlug: "afrique-australe",
+    country: "Angola",
+    tags: ["Énergie"],
+    date: "2026-04-17",
+    slug: "angola-totalenergies-production-declin",
+    author: "Pedro Silva",
     status: "published"
   },
   {
     id: "6",
-    title: "Les cryptomonnaies, nouveau vecteur de la fuite des capitaux africains",
-    excerpt: "Face aux contrôles des changes, les actifs numériques deviennent un outil prisé des élites.",
+    title: "La stratégie maritime chancelante du holding public Madar",
+    subtitle: "Algérie",
+    excerpt: "Ébranlé par les accusations contre son ancien patron, Charaf-Eddine Amara, placé en détention provisoire en décembre 2025, le conglomérat public réduit certains projets lancés ces dernières années, notamment dans le secteur maritime.",
     content: `
-      <p>L'adoption croissante des cryptomonnaies en Afrique révèle des usages variés, du transfert de fonds à l'évasion fiscale.</p>
+      <p>Le holding public algérien Madar traverse une période de turbulences. Les poursuites judiciaires contre son ancien dirigeant ont des répercussions sur les activités du groupe.</p>
     `,
-    image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=1200&h=800&fit=crop",
-    category: "Données & Insights",
-    categorySlug: "donnees-insights",
-    date: "2026-04-03",
-    slug: "cryptomonnaies-fuite-capitaux-afrique",
-    author: "Kofi Asante",
+    image: "https://images.unsplash.com/photo-1578575436955-ef29da568c6c?w=1200&h=800&fit=crop",
+    region: "Afrique du Nord",
+    regionSlug: "afrique-nord",
+    country: "Algérie",
+    tags: ["Business", "Politique"],
+    date: "2026-04-17",
+    slug: "algerie-madar-strategie-maritime",
+    author: "Karim Benali",
     status: "published"
   },
   {
     id: "7",
-    title: "Le Nigeria à la croisée des chemins : élections et tensions régionales",
-    excerpt: "Le géant ouest-africain fait face à des défis sécuritaires et économiques sans précédent.",
+    title: "Duel au sommet de la CAF",
+    subtitle: "Le Continent",
+    excerpt: "Samson Adamu du Nigeria et Gelson Fernandes du Cap-Vert s'affrontent pour la présidence de la Confédération Africaine de Football.",
     content: `
-      <p>Le Nigeria, première économie du continent, traverse une période de turbulences qui menace sa stabilité et son influence régionale.</p>
+      <p>La course à la présidence de la CAF s'annonce serrée entre deux candidats aux profils très différents.</p>
     `,
-    image: "https://images.unsplash.com/photo-1618828665011-0abd973f7bb8?w=1200&h=800&fit=crop",
-    category: "Géopolitique",
-    categorySlug: "geopolitique",
-    date: "2026-04-01",
-    slug: "nigeria-elections-tensions-regionales",
-    author: "Chinedu Okonkwo",
+    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&h=800&fit=crop",
+    region: "Le Continent",
+    regionSlug: "continent",
+    tags: ["Politique"],
+    date: "2026-04-10",
+    slug: "caf-election-presidence",
+    author: "Emmanuel Mensah",
+    isSubscribersOnly: true,
     status: "published"
   },
   {
     id: "8",
-    title: "La Zone de libre-échange continentale africaine : bilan et perspectives",
-    excerpt: "Trois ans après son lancement, la ZLECAf peine à tenir ses promesses initiales.",
-    content: `
-      <p>La Zone de libre-échange continentale africaine représente le plus grand accord commercial au monde par le nombre de pays participants. Mais sa mise en œuvre reste lente.</p>
-    `,
-    image: "https://images.unsplash.com/photo-1504297050568-910d24c426d3?w=1200&h=800&fit=crop",
-    category: "Géoéconomie",
-    categorySlug: "geoeconomie",
-    date: "2026-03-28",
-    slug: "zlecaf-bilan-perspectives",
-    author: "Amara Touré",
+    title: "Kinshasa visée par une plainte de 51 millions de dollars à New York",
+    isBrief: true,
+    subtitle: "RDC",
+    excerpt: "Le gouvernement congolais fait face à une procédure judiciaire aux États-Unis.",
+    content: `<p>Une plainte a été déposée contre la RDC devant les tribunaux new-yorkais.</p>`,
+    image: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=800&h=600&fit=crop",
+    region: "Afrique Centrale",
+    regionSlug: "afrique-centrale",
+    country: "RDC",
+    tags: ["Politique", "Business"],
+    date: "2026-04-08",
+    slug: "rdc-plainte-new-york",
+    author: "Jean-Baptiste Lukusa",
+    isSubscribersOnly: true,
+    status: "published"
+  },
+  {
+    id: "9",
+    title: "Procédure de saisie contre l'ancienne banque du PM de Guinée équatoriale à Douala",
+    isBrief: true,
+    subtitle: "Cameroun, Guinée équatoriale",
+    excerpt: "Des procédures judiciaires ciblent des actifs bancaires au Cameroun.",
+    content: `<p>Des saisies sont en cours contre des actifs liés à l'ancien Premier ministre équato-guinéen.</p>`,
+    image: "https://images.unsplash.com/photo-1504297050568-910d24c426d3?w=800&h=600&fit=crop",
+    region: "Afrique Centrale",
+    regionSlug: "afrique-centrale",
+    tags: ["Finance"],
+    date: "2026-04-13",
+    slug: "cameroun-guinee-equatoriale-saisie-banque",
+    author: "Paul Essomba",
+    isSubscribersOnly: true,
+    status: "published"
+  },
+  {
+    id: "10",
+    title: "La société pétrolière d'État GOC dans un bras de fer de 20M$ avec le turc Karpowership",
+    subtitle: "Gabon",
+    excerpt: "Gabon Oil Co, chargée de payer les factures de carburant pour le compte de la société de services publics SEEG afin de faire fonctionner les centrales électriques flottantes de Karpowership, est poursuivie par l'opérateur turc pour factures impayées.",
+    content: `<p>Un contentieux oppose l'entreprise pétrolière nationale gabonaise à l'opérateur turc de centrales électriques flottantes.</p>`,
+    image: "https://images.unsplash.com/photo-1473445730015-841f29a9490b?w=1200&h=800&fit=crop",
+    region: "Afrique Centrale",
+    regionSlug: "afrique-centrale",
+    country: "Gabon",
+    tags: ["Énergie"],
+    date: "2026-04-13",
+    slug: "gabon-goc-karpowership-contentieux",
+    author: "Marie Ndong",
+    isSubscribersOnly: true,
+    status: "published"
+  },
+  {
+    id: "11",
+    title: "Chevron prépare son retour en Afrique dans les pas de Trump",
+    subtitle: "Le Continent",
+    excerpt: "Le géant pétrolier américain planifie une expansion significative sur le continent africain, porté par la nouvelle politique énergétique de Washington.",
+    content: `<p>Chevron entend renforcer sa présence en Afrique, particulièrement dans les pays producteurs d'hydrocarbures.</p>`,
+    image: "https://images.unsplash.com/photo-1518173946687-a4c47d3a9f6a?w=1200&h=800&fit=crop",
+    region: "Le Continent",
+    regionSlug: "continent",
+    tags: ["Énergie", "Diplomatie"],
+    date: "2026-03-25",
+    slug: "chevron-retour-afrique",
+    author: "John Smith",
+    isSpotlight: true,
+    isSubscribersOnly: true,
+    status: "published"
+  },
+  {
+    id: "12",
+    title: "Dans l'ombre du roi, le chemin du prince Moulay El Hassan vers le trône",
+    subtitle: "Maroc",
+    excerpt: "Le prince héritier marocain se prépare progressivement à assumer ses futures responsabilités.",
+    content: `<p>L'éducation et la formation du prince héritier marocain suivent un parcours minutieusement planifié.</p>`,
+    image: "https://images.unsplash.com/photo-1539768942893-daf53e448371?w=1200&h=800&fit=crop",
+    region: "Afrique du Nord",
+    regionSlug: "afrique-nord",
+    country: "Maroc",
+    tags: ["Politique"],
+    date: "2026-04-13",
+    slug: "maroc-prince-moulay-el-hassan",
+    author: "Yasmine Alaoui",
+    isSubscribersOnly: true,
     status: "published"
   }
 ]
@@ -172,16 +331,39 @@ export function getArticleBySlug(slug: string): Article | undefined {
   return articles.find(article => article.slug === slug)
 }
 
-export function getArticlesByCategory(categorySlug: string): Article[] {
-  return articles.filter(article => article.categorySlug === categorySlug && article.status === "published")
+export function getArticlesByRegion(regionSlug: string): Article[] {
+  return articles.filter(article => article.regionSlug === regionSlug && article.status === "published")
+}
+
+export function getSpotlightArticles(): Article[] {
+  return articles.filter(article => article.isSpotlight && article.status === "published")
+}
+
+export function getBriefArticles(regionSlug?: string): Article[] {
+  return articles.filter(article => 
+    article.isBrief && 
+    article.status === "published" &&
+    (!regionSlug || article.regionSlug === regionSlug)
+  )
 }
 
 export function getRelatedArticles(article: Article, limit = 3): Article[] {
   return articles
-    .filter(a => a.categorySlug === article.categorySlug && a.id !== article.id && a.status === "published")
+    .filter(a => a.regionSlug === article.regionSlug && a.id !== article.id && a.status === "published")
     .slice(0, limit)
 }
 
-export function getCategoryBySlug(slug: string) {
-  return categories.find(cat => cat.slug === slug)
+export function getRegionBySlug(slug: string) {
+  return regions.find(r => r.slug === slug)
+}
+
+export function getLatestArticles(limit = 10): Article[] {
+  return articles
+    .filter(a => a.status === "published")
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, limit)
+}
+
+export function getArticlesByTag(tag: string): Article[] {
+  return articles.filter(a => a.tags.includes(tag) && a.status === "published")
 }

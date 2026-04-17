@@ -1,28 +1,28 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { categories } from "@/lib/data"
+import { regions } from "@/lib/data"
 import Link from "next/link"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "À propos - AfroTentacles",
-  description: "AfroTentacles, blog qui propose une lecture analytique des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d'influence.",
+  description: "AfroTentacles - Comprendre les équilibres africains. Blog analytique des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d'influence.",
 }
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
       <main className="flex-1">
         {/* Header */}
-        <section className="border-b border-border bg-muted">
+        <section className="border-b border-border bg-foreground text-background">
           <div className="mx-auto max-w-4xl px-4 py-16 text-center">
             <h1 className="font-serif text-4xl md:text-5xl font-bold text-balance">
               À propos d&apos;AfroTentacles
             </h1>
-            <p className="text-lg text-muted-foreground mt-4 max-w-2xl mx-auto">
-              Comprendre l&apos;Afrique à travers ses réseaux d&apos;influence
+            <p className="text-lg text-background/70 mt-4 max-w-2xl mx-auto">
+              Comprendre les équilibres africains
             </p>
           </div>
         </section>
@@ -32,7 +32,7 @@ export default function AboutPage() {
           <div className="mx-auto max-w-3xl px-4">
             <div className="prose prose-lg max-w-none">
               <p className="text-xl leading-relaxed text-foreground">
-                <strong className="font-serif">AfroTentacles</strong> est un blog qui propose une lecture analytique des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d&apos;influence.
+                <strong className="font-serif">AfroTentacles</strong> est une plateforme d&apos;information et d&apos;analyse qui propose une lecture approfondie des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d&apos;influence.
               </p>
               
               <h2 className="font-serif text-2xl font-bold mt-12 mb-4">Notre mission</h2>
@@ -43,32 +43,33 @@ export default function AboutPage() {
                 AfroTentacles ambitionne de combler ce besoin en offrant des analyses approfondies, documentées et accessibles sur les enjeux économiques, politiques et stratégiques de l&apos;Afrique contemporaine.
               </p>
               
-              <h2 className="font-serif text-2xl font-bold mt-12 mb-4">Notre approche</h2>
+              <h2 className="font-serif text-2xl font-bold mt-12 mb-4">Notre approche éditoriale</h2>
               <p className="leading-relaxed text-foreground">
-                Nous privilégions une approche multidimensionnelle qui combine :
+                Inspirés par les standards de l&apos;intelligence économique, nous privilégions une approche rigoureuse qui combine :
               </p>
               <ul className="space-y-2 text-foreground">
-                <li><strong>L&apos;analyse géoéconomique</strong> pour comprendre les flux financiers, commerciaux et d&apos;investissement</li>
-                <li><strong>Le décryptage géopolitique</strong> pour éclairer les rapports de force et les dynamiques régionales</li>
-                <li><strong>La cartographie des réseaux d&apos;influence</strong> pour identifier les acteurs clés et leurs stratégies</li>
+                <li><strong>L&apos;analyse régionale</strong> pour comprendre les spécificités de chaque zone géographique</li>
+                <li><strong>Le décryptage des réseaux</strong> pour identifier les acteurs clés et leurs stratégies</li>
+                <li><strong>La veille sectorielle</strong> sur l&apos;énergie, les mines, la finance et les infrastructures</li>
+                <li><strong>Le suivi politique</strong> des institutions et des transitions de pouvoir</li>
               </ul>
               
-              <h2 className="font-serif text-2xl font-bold mt-12 mb-4">Nos thématiques</h2>
+              <h2 className="font-serif text-2xl font-bold mt-12 mb-4">Nos régions couvertes</h2>
             </div>
             
-            {/* Categories */}
+            {/* Regions */}
             <div className="grid md:grid-cols-2 gap-4 mt-8">
-              {categories.map((category) => (
+              {regions.map((region) => (
                 <Link
-                  key={category.slug}
-                  href={`/categorie/${category.slug}`}
+                  key={region.slug}
+                  href={`/region/${region.slug}`}
                   className="group p-6 border border-border hover:border-primary transition-colors bg-background"
                 >
                   <h3 className="font-serif text-lg font-bold group-hover:text-primary transition-colors">
-                    {category.name}
+                    {region.name}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-2">
-                    {category.description}
+                    {region.description}
                   </p>
                 </Link>
               ))}

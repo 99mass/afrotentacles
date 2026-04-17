@@ -1,30 +1,26 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Twitter, Linkedin, Facebook, Send } from "lucide-react"
-
-const categories = [
-  { name: "Géoéconomie", slug: "geoeconomie" },
-  { name: "Géopolitique", slug: "geopolitique" },
-  { name: "Ressources & Énergie", slug: "ressources-energie" },
-  { name: "Flux & Corridors", slug: "flux-corridors" },
-  { name: "Institutions", slug: "institutions" },
-  { name: "Influences", slug: "influences" },
-  { name: "Données & Insights", slug: "donnees-insights" },
-]
+import { regions } from "@/lib/data"
 
 export function Footer() {
   return (
     <footer className="bg-foreground text-background">
       <div className="mx-auto max-w-7xl px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
-          <div>
+          <div className="md:col-span-2">
             <Link href="/" className="inline-block">
-              <span className="font-serif text-2xl font-bold tracking-tight">
-                Afro<span className="text-primary">Tentacles</span>
-              </span>
+              <Image 
+                src="/logo.jpg" 
+                alt="AfroTentacles" 
+                width={200} 
+                height={70}
+                className="h-12 w-auto brightness-0 invert"
+              />
             </Link>
-            <p className="mt-4 text-sm text-background/70 leading-relaxed">
-              Blog analytique des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d&apos;influence.
+            <p className="mt-4 text-sm text-background/70 leading-relaxed max-w-md">
+              AfroTentacles - Comprendre les équilibres africains. Blog analytique des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d&apos;influence.
             </p>
             {/* Social links */}
             <div className="flex items-center gap-4 mt-6">
@@ -43,17 +39,17 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Categories */}
+          {/* Regions */}
           <div>
-            <h3 className="font-semibold text-sm uppercase tracking-wider mb-4">Catégories</h3>
+            <h3 className="font-semibold text-sm uppercase tracking-wider mb-4">Régions</h3>
             <ul className="space-y-2">
-              {categories.map((category) => (
-                <li key={category.slug}>
+              {regions.map((region) => (
+                <li key={region.slug}>
                   <Link
-                    href={`/categorie/${category.slug}`}
+                    href={`/region/${region.slug}`}
                     className="text-sm text-background/70 hover:text-primary transition-colors"
                   >
-                    {category.name}
+                    {region.name}
                   </Link>
                 </li>
               ))}
@@ -72,6 +68,11 @@ export function Footer() {
               <li>
                 <Link href="/a-propos" className="text-sm text-background/70 hover:text-primary transition-colors">
                   À propos
+                </Link>
+              </li>
+              <li>
+                <Link href="/archives" className="text-sm text-background/70 hover:text-primary transition-colors">
+                  Archives
                 </Link>
               </li>
               <li>

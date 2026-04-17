@@ -2,53 +2,125 @@
 
 import Link from "next/link"
 import Image from "next/image"
+import { Lock } from "lucide-react"
 import { formatDate } from "@/lib/utils"
+import type { Article } from "@/lib/data"
 
 interface ArticleCardProps {
-  article: {
-    id: string
-    title: string
-    excerpt: string
-    image: string
-    category: string
-    categorySlug: string
-    date: string
-    slug: string
-  }
-  variant?: "default" | "featured" | "compact"
+  article: Article
+  variant?: "default" | "spotlight" | "horizontal" | "brief" | "sidebar"
+  showImage?: boolean
 }
 
-export function ArticleCard({ article, variant = "default" }: ArticleCardProps) {
-  if (variant === "featured") {
+export function ArticleCard({ article, variant = "default", showImage = true }: ArticleCardProps) {
+  // Spotlight - Large featured article
+  if (variant === "spotlight") {
     return (
-      <article className="group relative">
+      <article className="group">
         <Link href={`/article/${article.slug}`} className="block">
-          <div className="relative aspect-[16/9] overflow-hidden bg-muted">
-            <Image
-              src={article.image}
-              alt={article.title}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <Link
-                href={`/categorie/${article.categorySlug}`}
-                className="inline-block text-xs font-semibold uppercase tracking-wider text-primary mb-2 hover:underline"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {article.category}
-              </Link>
-              <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl font-bold leading-tight text-balance mb-3">
+          {showImage && (
+            <div className="relative aspect-[16/10] mb-4 overflow-hidden bg-muted">
+              <Image
+                src={article.image}
+                alt={article.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              {article.isSpotlight && (
+                <span className="absolute top-4 left-4 bg-primary text-primary-foreground px-3 py-1 text-xs font-semibold uppercase">
+                  Spotlight
+                </span>
+              )}
+            </div>
+          )}
+          <div>
+            {article.subtitle && (
+              <span className="text-primary text-sm font-semibold uppercase tracking-wide">
+                {article.subtitle}
+              </span>
+            )}
+            <h2 className="font-serif text-2xl lg:text-3xl font-bold mt-1 mb-3 group-hover:text-primary transition-colors leading-tight">
+              {article.title}
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
+              {article.excerpt}
+            </p>
+          </div>
+        </Link>
+      </article>
+    )
+  }
+
+  // Horizontal layout - Image on left, content on right
+  if (variant === "horizontal") {
+    return (
+      <article className="group flex gap-4">
+        {showImage && (
+          <Link href={`/article/${article.slug}`} className="shrink-0">
+            <div className="relative w-32 h-24 lg:w-48 lg:h-32 overflow-hidden bg-muted">
+              <Image
+                src={article.image}
+                alt={article.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+          </Link>
+        )}
+        <div className="flex-1 min-w-0">
+          <Link href={`/article/${article.slug}`}>
+            {article.subtitle && (
+              <span className="text-primary text-xs font-semibold uppercase tracking-wide">
+                {article.subtitle}
+              </span>
+            )}
+            <h3 className="font-serif text-base lg:text-lg font-bold mt-0.5 mb-2 group-hover:text-primary transition-colors leading-snug line-clamp-2">
+              {article.title}
+            </h3>
+          </Link>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+            {article.isSubscribersOnly && (
+              <span className="flex items-center gap-1 text-primary">
+                <Lock className="h-3 w-3" />
+                Abonnés
+              </span>
+            )}
+            {article.tags.slice(0, 2).map((tag, i) => (
+              <span key={tag}>
+                <Link href={`/tag/${tag.toLowerCase()}`} className="hover:text-primary">
+                  {tag}
+                </Link>
+                {i < Math.min(article.tags.length, 2) - 1 && ","}
+              </span>
+            ))}
+            <span>{formatDate(article.date)}</span>
+          </div>
+        </div>
+      </article>
+    )
+  }
+
+  // Brief - Short news item
+  if (variant === "brief") {
+    return (
+      <article className="group py-3 border-b border-border last:border-0">
+        <Link href={`/article/${article.slug}`}>
+          <div className="flex items-start gap-2">
+            {article.isSubscribersOnly && (
+              <Lock className="h-3 w-3 text-primary shrink-0 mt-1" />
+            )}
+            <div>
+              {article.subtitle && (
+                <span className="text-primary text-xs font-semibold uppercase tracking-wide">
+                  {article.subtitle}
+                </span>
+              )}
+              <h4 className="text-sm font-medium group-hover:text-primary transition-colors leading-snug">
                 {article.title}
-              </h2>
-              <p className="text-sm text-white/80 line-clamp-2 max-w-2xl">
-                {article.excerpt}
-              </p>
-              <time className="text-xs text-white/60 mt-3 block">
+              </h4>
+              <span className="text-xs text-muted-foreground mt-1 block">
                 {formatDate(article.date)}
-              </time>
+              </span>
             </div>
           </div>
         </Link>
@@ -56,66 +128,77 @@ export function ArticleCard({ article, variant = "default" }: ArticleCardProps) 
     )
   }
 
-  if (variant === "compact") {
+  // Sidebar - Compact list style
+  if (variant === "sidebar") {
     return (
-      <article className="group flex gap-4 py-4 border-b border-border last:border-0">
-        <Link href={`/article/${article.slug}`} className="relative w-24 h-24 flex-shrink-0 overflow-hidden bg-muted">
-          <Image
-            src={article.image}
-            alt={article.title}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-          />
+      <article className="group py-3 border-b border-border last:border-0">
+        <Link href={`/article/${article.slug}`}>
+          {article.subtitle && (
+            <span className="text-primary text-xs font-semibold uppercase tracking-wide">
+              {article.subtitle}
+            </span>
+          )}
+          <h4 className="font-serif text-sm font-bold mt-0.5 group-hover:text-primary transition-colors leading-snug">
+            {article.title}
+          </h4>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+            {article.isSubscribersOnly && (
+              <span className="flex items-center gap-1 text-primary">
+                <Lock className="h-3 w-3" />
+              </span>
+            )}
+            {article.tags[0] && (
+              <span>{article.tags[0]}</span>
+            )}
+            <span>{formatDate(article.date)}</span>
+          </div>
         </Link>
-        <div className="flex flex-col justify-center">
-          <Link
-            href={`/categorie/${article.categorySlug}`}
-            className="text-xs font-semibold uppercase tracking-wider text-primary hover:underline"
-          >
-            {article.category}
-          </Link>
-          <Link href={`/article/${article.slug}`}>
-            <h3 className="font-serif text-base font-semibold leading-snug mt-1 group-hover:text-primary transition-colors line-clamp-2">
-              {article.title}
-            </h3>
-          </Link>
-          <time className="text-xs text-muted-foreground mt-1">
-            {formatDate(article.date)}
-          </time>
-        </div>
       </article>
     )
   }
 
+  // Default - Standard card with image on top
   return (
     <article className="group">
       <Link href={`/article/${article.slug}`} className="block">
-        <div className="relative aspect-[16/10] overflow-hidden bg-muted mb-4">
-          <Image
-            src={article.image}
-            alt={article.title}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-          />
+        {showImage && (
+          <div className="relative aspect-[16/10] mb-3 overflow-hidden bg-muted">
+            <Image
+              src={article.image}
+              alt={article.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+        )}
+        <div>
+          {article.subtitle && (
+            <span className="text-primary text-xs font-semibold uppercase tracking-wide">
+              {article.subtitle}
+            </span>
+          )}
+          <h3 className="font-serif text-lg font-bold mt-1 mb-2 group-hover:text-primary transition-colors leading-snug">
+            {article.title}
+          </h3>
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+            {article.excerpt}
+          </p>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {article.isSubscribersOnly && (
+              <span className="flex items-center gap-1 text-primary">
+                <Lock className="h-3 w-3" />
+                Abonnés
+              </span>
+            )}
+            {article.tags.slice(0, 2).map((tag, i) => (
+              <span key={tag}>
+                {tag}
+                {i < Math.min(article.tags.length, 2) - 1 && ","}
+              </span>
+            ))}
+          </div>
         </div>
       </Link>
-      <Link
-        href={`/categorie/${article.categorySlug}`}
-        className="inline-block text-xs font-semibold uppercase tracking-wider text-primary hover:underline"
-      >
-        {article.category}
-      </Link>
-      <Link href={`/article/${article.slug}`}>
-        <h3 className="font-serif text-xl font-bold leading-tight mt-2 mb-2 group-hover:text-primary transition-colors text-balance">
-          {article.title}
-        </h3>
-      </Link>
-      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-        {article.excerpt}
-      </p>
-      <time className="text-xs text-muted-foreground">
-        {formatDate(article.date)}
-      </time>
     </article>
   )
 }

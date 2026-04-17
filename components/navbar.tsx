@@ -1,111 +1,103 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useState } from "react"
-import { Menu, X, Twitter, Linkedin, Facebook, Send } from "lucide-react"
+import { Menu, X, Search, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
-
-const categories = [
-  { name: "Géoéconomie", slug: "geoeconomie" },
-  { name: "Géopolitique", slug: "geopolitique" },
-  { name: "Ressources & Énergie", slug: "ressources-energie" },
-  { name: "Flux & Corridors", slug: "flux-corridors" },
-  { name: "Institutions", slug: "institutions" },
-  { name: "Influences", slug: "influences" },
-  { name: "Données & Insights", slug: "donnees-insights" },
-]
+import { regions } from "@/lib/data"
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <header className="border-b border-border bg-background sticky top-0 z-50">
-      {/* Top bar with social links */}
-      <div className="border-b border-border bg-foreground text-background">
+    <header className="bg-background sticky top-0 z-50">
+      {/* Top bar - Date and search */}
+      <div className="border-b border-border">
         <div className="mx-auto max-w-7xl px-4 py-2 flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            {new Date().toLocaleDateString('fr-FR', { 
+              weekday: 'long', 
+              day: 'numeric', 
+              month: 'long', 
+              year: 'numeric' 
+            })}
+          </div>
           <div className="flex items-center gap-4">
-            <Link href="https://twitter.com" target="_blank" aria-label="Twitter" className="hover:text-primary transition-colors">
-              <Twitter className="h-4 w-4" />
-            </Link>
-            <Link href="https://linkedin.com" target="_blank" aria-label="LinkedIn" className="hover:text-primary transition-colors">
-              <Linkedin className="h-4 w-4" />
-            </Link>
-            <Link href="https://facebook.com" target="_blank" aria-label="Facebook" className="hover:text-primary transition-colors">
-              <Facebook className="h-4 w-4" />
-            </Link>
-            <Link href="https://telegram.org" target="_blank" aria-label="Telegram" className="hover:text-primary transition-colors">
-              <Send className="h-4 w-4" />
+            <Button variant="ghost" size="sm" className="text-sm">
+              <Search className="h-4 w-4 mr-2" />
+              Rechercher
+            </Button>
+            <Link href="/admin">
+              <Button variant="ghost" size="sm" className="text-sm">
+                <User className="h-4 w-4 mr-2" />
+                Admin
+              </Button>
             </Link>
           </div>
-          <span className="text-xs uppercase tracking-wider">Analyse et Intelligence Africaine</span>
         </div>
       </div>
 
-      {/* Main navbar */}
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="flex items-center justify-between py-4">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-serif text-2xl font-bold tracking-tight">
-              Afro<span className="text-primary">Tentacles</span>
-            </span>
-          </Link>
-
-          {/* Desktop navigation */}
-          <nav className="hidden lg:flex items-center gap-6">
-            <Link href="/a-propos" className="text-sm font-medium hover:text-primary transition-colors">
-              À propos
+      {/* Main header with logo */}
+      <div className="border-b border-border">
+        <div className="mx-auto max-w-7xl px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center">
+              <Image 
+                src="/logo.jpg" 
+                alt="AfroTentacles" 
+                width={280} 
+                height={100}
+                className="h-16 w-auto"
+                priority
+              />
             </Link>
-          </nav>
 
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-        </div>
-
-        {/* Category navigation */}
-        <nav className="hidden lg:flex items-center gap-1 pb-3 border-t border-border pt-3 overflow-x-auto">
-          {categories.map((category) => (
-            <Link
-              key={category.slug}
-              href={`/categorie/${category.slug}`}
-              className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors whitespace-nowrap"
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
             >
-              {category.name}
-            </Link>
-          ))}
-        </nav>
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
+        </div>
       </div>
+
+      {/* Region navigation */}
+      <nav className="border-b border-border bg-foreground text-background">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="hidden lg:flex items-center">
+            {regions.map((region) => (
+              <Link
+                key={region.slug}
+                href={`/region/${region.slug}`}
+                className="px-4 py-3 text-sm font-medium hover:bg-primary transition-colors whitespace-nowrap"
+              >
+                {region.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </nav>
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-border">
-          <nav className="flex flex-col px-4 py-4 gap-2">
-            {categories.map((category) => (
+        <div className="lg:hidden border-b border-border bg-foreground text-background">
+          <nav className="flex flex-col px-4 py-2">
+            {regions.map((region) => (
               <Link
-                key={category.slug}
-                href={`/categorie/${category.slug}`}
-                className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
+                key={region.slug}
+                href={`/region/${region.slug}`}
+                className="px-3 py-3 text-sm font-medium hover:bg-primary transition-colors border-b border-muted-foreground/20 last:border-0"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {category.name}
+                {region.name}
               </Link>
             ))}
-            <div className="border-t border-border mt-2 pt-2">
-              <Link
-                href="/a-propos"
-                className="px-3 py-2 text-sm font-medium hover:text-primary transition-colors block"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                À propos
-              </Link>
-            </div>
           </nav>
         </div>
       )}

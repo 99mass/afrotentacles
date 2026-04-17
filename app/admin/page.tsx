@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { articles as initialArticles, categories } from "@/lib/data"
+import { articles as initialArticles, regions, tags } from "@/lib/data"
 import { formatDate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash2, Eye, PlusCircle } from "lucide-react"
+import { Pencil, Trash2, Eye, PlusCircle, Lock, Star } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,11 +20,11 @@ import {
 
 export default function AdminDashboard() {
   const [articles, setArticles] = useState(initialArticles)
-  const [filterCategory, setFilterCategory] = useState("")
+  const [filterRegion, setFilterRegion] = useState("")
   const [filterStatus, setFilterStatus] = useState("")
 
   const filteredArticles = articles.filter((article) => {
-    if (filterCategory && article.categorySlug !== filterCategory) return false
+    if (filterRegion && article.regionSlug !== filterRegion) return false
     if (filterStatus && article.status !== filterStatus) return false
     return true
   })
@@ -51,19 +51,39 @@ export default function AdminDashboard() {
         </Button>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="bg-background p-4 border border-border">
+          <div className="text-2xl font-bold">{articles.filter(a => a.status === "published").length}</div>
+          <div className="text-sm text-muted-foreground">Publiés</div>
+        </div>
+        <div className="bg-background p-4 border border-border">
+          <div className="text-2xl font-bold">{articles.filter(a => a.status === "draft").length}</div>
+          <div className="text-sm text-muted-foreground">Brouillons</div>
+        </div>
+        <div className="bg-background p-4 border border-border">
+          <div className="text-2xl font-bold">{articles.filter(a => a.isSpotlight).length}</div>
+          <div className="text-sm text-muted-foreground">Spotlights</div>
+        </div>
+        <div className="bg-background p-4 border border-border">
+          <div className="text-2xl font-bold">{articles.filter(a => a.isSubscribersOnly).length}</div>
+          <div className="text-sm text-muted-foreground">Abonnés</div>
+        </div>
+      </div>
+
       {/* Filters */}
       <div className="bg-background p-4 border border-border mb-6 flex flex-wrap gap-4">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium">Catégorie:</label>
+          <label className="text-sm font-medium">Région:</label>
           <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
+            value={filterRegion}
+            onChange={(e) => setFilterRegion(e.target.value)}
             className="px-3 py-2 border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="">Toutes</option>
-            {categories.map((cat) => (
-              <option key={cat.slug} value={cat.slug}>
-                {cat.name}
+            {regions.map((region) => (
+              <option key={region.slug} value={region.slug}>
+                {region.name}
               </option>
             ))}
           </select>
@@ -92,7 +112,7 @@ export default function AdminDashboard() {
                   Titre
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden md:table-cell">
-                  Catégorie
+                  Région
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden lg:table-cell">
                   Date
@@ -109,13 +129,39 @@ export default function AdminDashboard() {
               {filteredArticles.map((article) => (
                 <tr key={article.id} className="hover:bg-muted/50 transition-colors">
                   <td className="px-4 py-4">
-                    <div className="font-medium line-clamp-1">{article.title}</div>
-                    <div className="text-sm text-muted-foreground md:hidden mt-1">
-                      {article.category}
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1">
+                        <div className="font-medium line-clamp-1">{article.title}</div>
+                        <div className="text-sm text-muted-foreground md:hidden mt-1">
+                          {article.region}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          {article.isSpotlight && (
+                            <span className="inline-flex items-center gap-1 text-xs text-primary">
+                              <Star className="h-3 w-3" />
+                              Spotlight
+                            </span>
+                          )}
+                          {article.isSubscribersOnly && (
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                              <Lock className="h-3 w-3" />
+                              Abonnés
+                            </span>
+                          )}
+                          {article.isBrief && (
+                            <span className="text-xs text-muted-foreground">
+                              En bref
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </td>
                   <td className="px-4 py-4 hidden md:table-cell">
-                    <span className="text-sm">{article.category}</span>
+                    <span className="text-sm">{article.region}</span>
+                    {article.country && (
+                      <span className="text-xs text-muted-foreground block">{article.country}</span>
+                    )}
                   </td>
                   <td className="px-4 py-4 hidden lg:table-cell">
                     <span className="text-sm text-muted-foreground">
