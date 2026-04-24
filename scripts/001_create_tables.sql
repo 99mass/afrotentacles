@@ -1,3 +1,12 @@
+-- Create categories table
+CREATE TABLE IF NOT EXISTS categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create articles table
 CREATE TABLE IF NOT EXISTS articles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -6,9 +15,11 @@ CREATE TABLE IF NOT EXISTS articles (
   excerpt TEXT,
   content TEXT,
   image TEXT,
-  category TEXT NOT NULL,
+  category_name TEXT NOT NULL,
+  category_slug TEXT REFERENCES categories(slug) ON UPDATE CASCADE ON DELETE SET NULL,
   is_featured BOOLEAN DEFAULT false,
-  is_published BOOLEAN DEFAULT true,
+  status TEXT DEFAULT 'draft' CHECK (status IN ('published', 'draft')),
+  published_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   author TEXT DEFAULT 'AfroTentacles',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -42,14 +53,24 @@ CREATE TABLE IF NOT EXISTS admins (
 );
 
 -- Enable RLS
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE article_media ENABLE ROW LEVEL SECURITY;
 ALTER TABLE article_views ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
 
+-- Categories policies
+CREATE POLICY "Anyone can read categories" ON categories
+  FOR SELECT USING (true);
+
+CREATE POLICY "Admins can manage categories" ON categories
+  FOR ALL USING (
+    auth.uid() IN (SELECT id FROM admins)
+  );
+
 -- Articles policies (public read, admin write)
 CREATE POLICY "Anyone can read published articles" ON articles
-  FOR SELECT USING (is_published = true);
+  FOR SELECT USING (status = 'published');
 
 CREATE POLICY "Admins can do everything on articles" ON articles
   FOR ALL USING (
@@ -86,8 +107,10 @@ SELECT
   a.id,
   a.title,
   a.slug,
-  a.category,
-  a.is_published,
+  a.category_name as category,
+  a.category_slug,
+  a.status,
+  a.published_date,
   a.created_at,
   COUNT(DISTINCT v.id) as view_count,
   COUNT(DISTINCT CASE WHEN v.viewed_at > NOW() - INTERVAL '24 hours' THEN v.id END) as views_today,

@@ -5,6 +5,12 @@ export interface MediaItem {
   thumbnail?: string
 }
 
+export type ContentBlock = 
+  | { id: string; type: 'text'; content: string }
+  | { id: string; type: 'image'; url: string; caption?: string }
+  | { id: string; type: 'video'; url: string; caption?: string }
+  | { id: string; type: 'pdf'; url: string; caption?: string }
+
 export interface Article {
   id: string
   title: string
@@ -18,6 +24,7 @@ export interface Article {
   author: string
   media?: MediaItem[]
   status: "published" | "draft"
+  is_featured?: boolean
 }
 
 export const categories = [

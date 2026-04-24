@@ -57,8 +57,8 @@ export default function AdminLoginPage() {
       return
     }
 
-    router.push("/admin")
-    router.refresh()
+    // Force a hard navigation to ensure cookies are sent to middleware
+    window.location.href = "/admin"
   }
 
   return (
