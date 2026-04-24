@@ -2,6 +2,7 @@ interface LogoProps {
   variant?: "default" | "white"
   size?: "sm" | "md" | "lg"
   className?: string
+  showdescription?: boolean
 }
 
 const sizeConfig = {
@@ -21,6 +22,7 @@ export function Logo({ variant = "default", size = "md", className = "" }: LogoP
         <div className={`${s.box} flex items-center justify-center bg-primary`}>
           <span className={`font-serif ${s.letter} font-bold text-white`}>A</span>
         </div>
+        <div className="w-1"></div>
         <div className={`${s.box} flex items-center justify-center bg-black`}>
           <span className={`font-serif ${s.letter} font-bold text-white`}>T</span>
         </div>
@@ -37,18 +39,18 @@ export function Logo({ variant = "default", size = "md", className = "" }: LogoP
   )
 }
 
-export function LogoHorizontal({ variant = "default", className = "" }: LogoProps) {
+export function LogoHorizontal({ variant = "default", className = "", showdescription = true }: LogoProps) {
   const isWhite = variant === "white"
   
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       {/* Logo icon - two squares */}
       <div className="flex">
-        <div className={`w-8 h-8 flex items-center justify-center ${isWhite ? "bg-white" : "bg-primary"}`}>
-          <span className={`font-serif text-lg font-bold ${isWhite ? "text-primary" : "text-white"}`}>A</span>
+        <div className={`w-8 h-8 flex items-center justify-center  bg-primary`}>
+          <span className={`font-serif text-lg font-bold text-white`}>A</span>
         </div>
-        <div className={`w-8 h-8 flex items-center justify-center ${isWhite ? "bg-white" : "bg-foreground"}`}>
-          <span className={`font-serif text-lg font-bold ${isWhite ? "text-foreground" : "text-white"}`}>T</span>
+        <div className={`w-8 h-8 flex items-center justify-center bg-foreground`}>
+          <span className={`font-serif text-lg font-bold text-white`}>T</span>
         </div>
       </div>
       {/* Brand text */}
@@ -56,9 +58,9 @@ export function LogoHorizontal({ variant = "default", className = "" }: LogoProp
         <span className={`font-serif text-lg font-bold leading-tight ${isWhite ? "text-white" : "text-foreground"}`}>
           AfroTentacles
         </span>
-        <span className={`text-[10px] leading-tight ${isWhite ? "text-white/70" : "text-muted-foreground"}`}>
+       {showdescription && <span className={`text-[10px] leading-tight ${isWhite ? "text-white/70" : "text-muted-foreground"}`}>
           Comprendre les équilibres africains
-        </span>
+        </span>}
       </div>
     </div>
   )

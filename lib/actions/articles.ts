@@ -70,18 +70,32 @@ export async function getLatestArticles(page = 1, limit = 10, excludeId?: string
   return (data || []).map(mapToArticle)
 }
 
-export async function getArticlesByCategory(categorySlug: string, limit = 10): Promise<Article[]> {
+export async function searchArticles(query: string): Promise<Article[]> {
   const supabase = await createClient()
+  
   const { data } = await supabase
     .from("articles")
     .select("*")
     .eq("status", "published")
-    .eq("category_slug", categorySlug)
+    .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`)
     .order("published_date", { ascending: false })
-    .limit(limit)
+    .limit(5)
     
   return (data || []).map(mapToArticle)
 }
+
+// export async function getArticlesByCategory(categorySlug: string, limit = 10): Promise<Article[]> {
+//   const supabase = await createClient()
+//   const { data } = await supabase
+//     .from("articles")
+//     .select("*")
+//     .eq("status", "published")
+//     .eq("category_slug", categorySlug)
+//     .order("published_date", { ascending: false })
+//     .limit(limit)
+    
+//   return (data || []).map(mapToArticle)
+// }
 
 export async function getPopularArticles(limit = 5): Promise<Article[]> {
   const supabase = await createClient()
@@ -160,6 +174,90 @@ export async function getRelatedArticles(article: Article, limit = 3): Promise<A
     .order("published_date", { ascending: false })
     .limit(limit)
     
+  return (data || []).map(mapToArticle)
+}
+
+export async function getCategories() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("categories")
+    .select("*")
+    .order("name", { ascending: true })
+  return data || []
+}
+
+export async function getCategoryBySlug(slug: string) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("slug", slug)
+    .single()
+  return data || null
+}
+
+export async function createCategory(category: { name: string, slug: string, description?: string }) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("categories")
+    .insert([category])
+    .select()
+    .single()
+    
+  if (error) {
+    console.error("Error creating category:", error)
+    throw new Error(error.message)
+  }
+  
+  revalidatePath("/")
+  revalidatePath("/admin/categories")
+  return data
+}
+
+export async function updateCategory(id: string, category: { name: string, slug: string, description?: string }) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("categories")
+    .update(category)
+    .eq("id", id)
+    .select()
+    .single()
+    
+  if (error) {
+    console.error("Error updating category:", error)
+    throw new Error(error.message)
+  }
+  
+  revalidatePath("/")
+  revalidatePath("/admin/categories")
+  return data
+}
+
+export async function deleteCategory(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("categories")
+    .delete()
+    .eq("id", id)
+    
+  if (error) {
+    console.error("Error deleting category:", error)
+    throw new Error(error.message)
+  }
+  
+  revalidatePath("/")
+  revalidatePath("/admin/categories")
+  return true
+}
+
+export async function getArticlesByCategory(categorySlug: string): Promise<Article[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("articles")
+    .select("*, categories(name)")
+    .eq("status", "published")
+    .eq("category_slug", categorySlug)
+    .order("published_date", { ascending: false })
   return (data || []).map(mapToArticle)
 }
 

@@ -24,7 +24,11 @@ export function InfiniteArticleList({ initialArticles = [] }: { initialArticles?
       if (newArticles.length === 0) {
         setHasMore(false)
       } else {
-        setArticles(prev => [...prev, ...newArticles])
+        setArticles(prev => {
+          const existingIds = new Set(prev.map(a => a.id))
+          const uniqueNewArticles = newArticles.filter(a => !existingIds.has(a.id))
+          return [...prev, ...uniqueNewArticles]
+        })
         setPage(nextPage)
       }
     } catch (error) {

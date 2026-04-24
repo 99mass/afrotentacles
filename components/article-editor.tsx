@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { categories, type Article, type MediaItem, type ContentBlock } from "@/lib/data"
+import { type Article, type MediaItem, type ContentBlock } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -19,9 +19,11 @@ import { toast } from "sonner"
 interface ArticleEditorProps {
   article?: Article
   mode: "create" | "edit"
+  categories: any[]
+  authors?: any[]
 }
 
-export function ArticleEditor({ article, mode }: ArticleEditorProps) {
+export function ArticleEditor({ article, mode, categories, authors = [] }: ArticleEditorProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [uploadingMain, setUploadingMain] = useState(false)
@@ -31,9 +33,9 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
   const [formData, setFormData] = useState({
     title: article?.title || "",
     excerpt: article?.excerpt || "",
-    category: article?.categorySlug || categories[0].slug,
+    category: article?.categorySlug || (categories.length > 0 ? categories[0].slug : ""),
     image: article?.image || "",
-    author: article?.author || "",
+    author: article?.author || (authors.length > 0 ? authors[0].name : "Mouhamed ndiongue"),
     status: article?.status || "draft",
     is_featured: article?.is_featured || false,
   })
@@ -520,14 +522,25 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
                 <Label htmlFor="author" className="text-sm font-medium">
                   Auteur <span className="text-primary">*</span>
                 </Label>
-                <Input
+                <select
                   id="author"
                   name="author"
                   value={formData.author}
                   onChange={handleChange}
-                  placeholder="Nom de l'auteur"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   required
-                />
+                >
+                  <option value="" disabled>Sélectionner un auteur</option>
+                  {authors.map((author) => (
+                    <option key={author.id} value={author.name}>
+                      {author.name}
+                    </option>
+                  ))}
+                  {/* Fallback for existing articles with unlisted authors */}
+                  {formData.author && !authors.find(a => a.name === formData.author) && (
+                    <option value={formData.author}>{formData.author} (Non répertorié)</option>
+                  )}
+                </select>
               </div>
 
               <div className="space-y-2">

@@ -1,6 +1,6 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { categories } from "@/lib/data"
+import { getCategories } from "@/lib/actions/articles"
 import Link from "next/link"
 import type { Metadata } from "next"
 
@@ -9,7 +9,9 @@ export const metadata: Metadata = {
   description: "AfroTentacles - Comprendre les équilibres africains. Blog analytique des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d'influence.",
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const categories = await getCategories()
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />

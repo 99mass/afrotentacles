@@ -1,8 +1,7 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ArticleCard } from "@/components/article-card"
-import { getFeaturedArticle, getLatestArticles, getArticlesByCategory, getPopularArticles } from "@/lib/actions/articles"
-import { getCategories } from "@/lib/actions/categories"
+import { getFeaturedArticle, getLatestArticles, getArticlesByCategory, getPopularArticles, getCategories } from "@/lib/actions/articles"
 import { InfiniteArticleList } from "@/components/infinite-article-list"
 import Link from "next/link"
 
@@ -87,7 +86,7 @@ export default async function HomePage() {
 
         {/* Category Sections */}
         {await Promise.all(categories.map(async (category: any) => {
-          const categoryArticles = await getArticlesByCategory(category.slug, 4)
+          const categoryArticles = await getArticlesByCategory(category.slug)
           if (categoryArticles.length === 0) return null
           
           return (

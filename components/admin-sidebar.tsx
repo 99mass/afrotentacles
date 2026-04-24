@@ -18,6 +18,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Tags,
+  Users,
 } from "lucide-react"
 import { useState } from "react"
 import type { User } from "@supabase/supabase-js"
@@ -26,7 +28,10 @@ const navItems = [
   { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/admin/articles", label: "Articles", icon: FileText },
   { href: "/admin/nouveau", label: "Nouvel article", icon: PlusCircle },
+  { href: "/admin/categories", label: "Catégories", icon: Tags },
+  { href: "/admin/auteurs", label: "Auteurs", icon: Users },
   { href: "/admin/statistiques", label: "Statistiques", icon: BarChart3 },
+  { href: "/admin/parametres", label: "Paramètres", icon: Settings },
 ]
 
 interface AdminSidebarProps {

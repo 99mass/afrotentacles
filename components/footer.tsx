@@ -1,9 +1,25 @@
 import Link from "next/link"
-import { Twitter, Linkedin, Facebook, Send } from "lucide-react"
-import { categories } from "@/lib/data"
+import { Twitter, Linkedin, Facebook, Instagram, Youtube, Github, Send, Link as LinkIcon } from "lucide-react"
+import { getCategories } from "@/lib/actions/articles"
+import { getActiveSocialLinks } from "@/lib/actions/settings"
 import { LogoHorizontal } from "@/components/logo"
 
-export function Footer() {
+const AVAILABLE_ICONS: Record<string, any> = {
+  Twitter,
+  Facebook,
+  Linkedin,
+  Instagram,
+  Youtube,
+  Github,
+  Send,
+  Link: LinkIcon
+}
+
+export async function Footer() {
+  const [categories, socialLinks] = await Promise.all([
+    getCategories(),
+    getActiveSocialLinks()
+  ])
   return (
     <footer className="bg-foreground text-background">
       {/* Top accent line */}
@@ -19,20 +35,22 @@ export function Footer() {
             <p className="mt-6 text-sm text-background/60 leading-relaxed max-w-md">
               Blog analytique des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d&apos;influence. Décryptage des enjeux stratégiques du continent.
             </p>
-            {/* Social links */}
+            {/* Social links - dynamic */}
             <div className="flex items-center gap-4 mt-6">
-              <Link href="https://twitter.com" target="_blank" aria-label="Twitter" className="text-background/60 hover:text-primary transition-colors">
-                <Twitter className="h-5 w-5" />
-              </Link>
-              <Link href="https://linkedin.com" target="_blank" aria-label="LinkedIn" className="text-background/60 hover:text-primary transition-colors">
-                <Linkedin className="h-5 w-5" />
-              </Link>
-              <Link href="https://facebook.com" target="_blank" aria-label="Facebook" className="text-background/60 hover:text-primary transition-colors">
-                <Facebook className="h-5 w-5" />
-              </Link>
-              <Link href="https://telegram.org" target="_blank" aria-label="Telegram" className="text-background/60 hover:text-primary transition-colors">
-                <Send className="h-5 w-5" />
-              </Link>
+              {socialLinks.map((link) => {
+                const IconComponent = AVAILABLE_ICONS[link.icon_name] || LinkIcon
+                return (
+                  <Link
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    aria-label={link.platform}
+                    className="text-background/60 hover:text-primary transition-colors"
+                  >
+                    <IconComponent className="h-5 w-5" />
+                  </Link>
+                )
+              })}
             </div>
           </div>
 
