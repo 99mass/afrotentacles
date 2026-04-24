@@ -2,24 +2,28 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { categories, type Article, type MediaItem } from "@/lib/data"
+import { type Article, type MediaItem, type ContentBlock } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { 
   ArrowLeft, Save, Upload, Trash2, Image, Video, FileText, 
-  Loader2, Check, X, Eye, GripVertical 
+  Loader2, Check, X, Eye, GripVertical, Plus, Type, ArrowUp, ArrowDown
 } from "lucide-react"
 import Link from "next/link"
 import NextImage from "next/image"
+import { createArticle, updateArticle } from "@/lib/actions/articles"
+import { toast } from "sonner"
 
 interface ArticleEditorProps {
   article?: Article
   mode: "create" | "edit"
+  categories: any[]
+  authors?: any[]
 }
 
-export function ArticleEditor({ article, mode }: ArticleEditorProps) {
+export function ArticleEditor({ article, mode, categories, authors = [] }: ArticleEditorProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [uploadingMain, setUploadingMain] = useState(false)
@@ -29,14 +33,44 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
   const [formData, setFormData] = useState({
     title: article?.title || "",
     excerpt: article?.excerpt || "",
-    content: article?.content || "",
-    category: article?.categorySlug || categories[0].slug,
+    category: article?.categorySlug || (categories.length > 0 ? categories[0].slug : ""),
     image: article?.image || "",
-    author: article?.author || "",
+    author: article?.author || (authors.length > 0 ? authors[0].name : "Mouhamed ndiongue"),
     status: article?.status || "draft",
+    is_featured: article?.is_featured || false,
   })
 
-  const [media, setMedia] = useState<MediaItem[]>(article?.media || [])
+  // Parse existing content or media into blocks
+  const [blocks, setBlocks] = useState<ContentBlock[]>(() => {
+    if (article?.content) {
+      try {
+        const parsed = JSON.parse(article.content)
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].type) {
+          return parsed as ContentBlock[]
+        }
+      } catch {
+        // Not JSON, it's HTML/text
+      }
+      
+      // Backward compatibility: Convert raw HTML and existing media to blocks
+      const initialBlocks: ContentBlock[] = [
+        { id: Math.random().toString(36).substr(2, 9), type: 'text', content: article.content }
+      ]
+      
+      if (article.media && article.media.length > 0) {
+        article.media.forEach(m => {
+          initialBlocks.push({
+            id: Math.random().toString(36).substr(2, 9),
+            type: m.type as any,
+            url: m.url,
+            caption: m.caption
+          })
+        })
+      }
+      return initialBlocks
+    }
+    return [{ id: Math.random().toString(36).substr(2, 9), type: 'text', content: "" }]
+  })
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -87,39 +121,95 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
     setUploadingMedia(index)
     const url = await uploadFile(file)
     if (url) {
-      updateMedia(index, "url", url)
+      updateBlock(index, "url", url)
     }
     setUploadingMedia(null)
   }
 
-  const addMedia = (type: "image" | "video" | "pdf") => {
-    setMedia((prev) => [...prev, { type, url: "", caption: "" }])
+  const addBlock = (type: ContentBlock['type']) => {
+    const newId = Math.random().toString(36).substr(2, 9)
+    const newBlock: ContentBlock = 
+      type === 'text' 
+        ? { id: newId, type: 'text', content: "" } 
+        : { id: newId, type, url: "", caption: "" }
+    setBlocks(prev => [...prev, newBlock])
+
+    // Scroll and focus the newly created block
+    setTimeout(() => {
+      const element = document.getElementById(`block-${newId}`)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        element.focus()
+      }
+    }, 100)
   }
 
-  const updateMedia = (index: number, field: keyof MediaItem, value: string) => {
-    setMedia((prev) => {
+  const updateBlock = (index: number, field: string, value: string) => {
+    setBlocks(prev => {
       const updated = [...prev]
-      updated[index] = { ...updated[index], [field]: value }
+      updated[index] = { ...updated[index], [field]: value } as any
       return updated
     })
   }
 
-  const removeMedia = (index: number) => {
-    setMedia((prev) => prev.filter((_, i) => i !== index))
+  const removeBlock = (index: number) => {
+    if (blocks.length === 1) return // Keep at least one block
+    setBlocks(prev => prev.filter((_, i) => i !== index))
+  }
+  
+  const moveBlock = (index: number, direction: 'up' | 'down') => {
+    if ((direction === 'up' && index === 0) || (direction === 'down' && index === blocks.length - 1)) return
+    setBlocks(prev => {
+      const updated = [...prev]
+      const newIndex = direction === 'up' ? index - 1 : index + 1
+      const temp = updated[index]
+      updated[index] = updated[newIndex]
+      updated[newIndex] = temp
+      return updated
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    
-    // In a real app, this would save to a database
-    console.log("Saving article:", { ...formData, media })
-    
-    setIsLoading(false)
-    router.push("/admin/articles")
+    try {
+      // Extract media for backward compatibility in the `article_media` table
+      const mediaItems = blocks
+        .filter(b => b.type !== 'text' && b.url)
+        .map(b => ({
+          type: b.type,
+          url: (b as any).url,
+          caption: (b as any).caption
+        }))
+
+      const dataToSave = { 
+        ...formData, 
+        content: JSON.stringify(blocks), 
+        media: mediaItems 
+      }
+
+      if (mode === "create") {
+        await createArticle(dataToSave)
+        toast.success("Article créé avec succès !", {
+          description: `"${formData.title}" a été enregistré.`,
+        })
+      } else if (mode === "edit" && article?.id) {
+        await updateArticle(article.id, dataToSave)
+        toast.success("Article mis à jour !", {
+          description: `"${formData.title}" a été modifié.`,
+        })
+      }
+      
+      router.push("/admin/articles")
+    } catch (error) {
+      console.error("Error saving article:", error)
+      toast.error("Une erreur est survenue", {
+        description: "Impossible d'enregistrer l'article. Veuillez réessayer.",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -207,45 +297,26 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
               </div>
             </div>
 
-            {/* Content Card */}
-            <div className="bg-background rounded-lg border border-border p-6 space-y-4">
-              <h2 className="font-semibold text-lg border-b border-border pb-3">Contenu de l&apos;article</h2>
-              
-              <div className="space-y-2">
-                <Label htmlFor="content" className="text-sm font-medium">
-                  Corps de l&apos;article <span className="text-primary">*</span>
-                </Label>
-                <Textarea
-                  id="content"
-                  name="content"
-                  value={formData.content}
-                  onChange={handleChange}
-                  placeholder="Rédigez le contenu de votre article ici..."
-                  required
-                  rows={20}
-                  className="font-mono text-sm resize-none"
-                />
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">
-                    HTML supporté: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;blockquote&gt;
-                  </p>
-                  <span className="text-xs text-muted-foreground">
-                    {formData.content.length} caractères
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Media Card */}
+            {/* Content Blocks Card */}
             <div className="bg-background rounded-lg border border-border p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-border pb-3">
-                <h2 className="font-semibold text-lg">Médias additionnels</h2>
-                <div className="flex gap-2">
+                <h2 className="font-semibold text-lg">Contenu de l&apos;article</h2>
+                <div className="flex gap-2 flex-wrap justify-end">
                   <Button 
                     type="button" 
                     variant="outline" 
                     size="sm" 
-                    onClick={() => addMedia("image")}
+                    onClick={() => addBlock("text")}
+                    className="text-xs"
+                  >
+                    <Type className="h-3 w-3 mr-1" />
+                    Texte
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => addBlock("image")}
                     className="text-xs"
                   >
                     <Image className="h-3 w-3 mr-1" />
@@ -255,7 +326,7 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
                     type="button" 
                     variant="outline" 
                     size="sm" 
-                    onClick={() => addMedia("video")}
+                    onClick={() => addBlock("video")}
                     className="text-xs"
                   >
                     <Video className="h-3 w-3 mr-1" />
@@ -265,7 +336,7 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
                     type="button" 
                     variant="outline" 
                     size="sm" 
-                    onClick={() => addMedia("pdf")}
+                    onClick={() => addBlock("pdf")}
                     className="text-xs"
                   >
                     <FileText className="h-3 w-3 mr-1" />
@@ -274,112 +345,142 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
                 </div>
               </div>
 
-              {media.length > 0 ? (
-                <div className="space-y-3">
-                  {media.map((item, index) => (
-                    <div 
-                      key={index} 
-                      className="flex gap-4 p-4 bg-muted/50 rounded-lg border border-border"
-                    >
-                      <div className="flex items-center text-muted-foreground">
-                        <GripVertical className="h-5 w-5" />
-                      </div>
-                      
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <span className={`
-                            inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded
-                            ${item.type === "image" ? "bg-blue-100 text-blue-700" : ""}
-                            ${item.type === "video" ? "bg-red-100 text-red-700" : ""}
-                            ${item.type === "pdf" ? "bg-green-100 text-green-700" : ""}
-                          `}>
-                            {item.type === "image" && <Image className="h-3 w-3" />}
-                            {item.type === "video" && <Video className="h-3 w-3" />}
-                            {item.type === "pdf" && <FileText className="h-3 w-3" />}
-                            {item.type.toUpperCase()}
-                          </span>
-                          <span className="text-sm text-muted-foreground">#{index + 1}</span>
-                        </div>
+              <div className="space-y-6">
+                {blocks.map((block, index) => (
+                  <div 
+                    key={block.id} 
+                    className="group flex gap-4 p-4 bg-muted/20 border border-border rounded-lg relative transition-colors focus-within:border-primary/50"
+                  >
+                    {/* Controls */}
+                    <div className="flex flex-col items-center gap-1 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6" 
+                        onClick={() => moveBlock(index, 'up')}
+                        disabled={index === 0}
+                      >
+                        <ArrowUp className="h-3 w-3" />
+                      </Button>
+                      <GripVertical className="h-4 w-4 my-1 cursor-grab" />
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6" 
+                        onClick={() => moveBlock(index, 'down')}
+                        disabled={index === blocks.length - 1}
+                      >
+                        <ArrowDown className="h-3 w-3" />
+                      </Button>
+                    </div>
 
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <Input
-                              value={item.url}
-                              onChange={(e) => updateMedia(index, "url", e.target.value)}
-                              placeholder={
-                                item.type === "video"
-                                  ? "URL YouTube (ex: https://www.youtube.com/embed/...)"
-                                  : item.type === "pdf"
-                                  ? "URL du fichier PDF"
-                                  : "URL de l'image"
-                              }
-                              className="text-sm"
-                            />
-                          </div>
-                          {(item.type === "image" || item.type === "pdf") && (
-                            <div className="relative">
-                              <input
-                                type="file"
-                                accept={item.type === "image" ? "image/*" : ".pdf"}
-                                onChange={(e) => handleMediaUpload(index, e)}
-                                className="absolute inset-0 opacity-0 cursor-pointer"
+                    <div className="flex-1 space-y-3 min-w-0">
+                      {/* Block Header */}
+                      <div className="flex items-center justify-between">
+                        <span className={`
+                          inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded
+                          ${block.type === 'text' ? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" : ""}
+                          ${block.type === 'image' ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" : ""}
+                          ${block.type === 'video' ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" : ""}
+                          ${block.type === 'pdf' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" : ""}
+                        `}>
+                          {block.type === 'text' && <Type className="h-3 w-3" />}
+                          {block.type === 'image' && <Image className="h-3 w-3" />}
+                          {block.type === 'video' && <Video className="h-3 w-3" />}
+                          {block.type === 'pdf' && <FileText className="h-3 w-3" />}
+                          {block.type.toUpperCase()}
+                        </span>
+                        
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeBlock(index)}
+                          className="h-6 px-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          disabled={blocks.length === 1}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Supprimer
+                        </Button>
+                      </div>
+
+                      {/* Block Content */}
+                      {block.type === 'text' ? (
+                        <Textarea
+                          id={`block-${block.id}`}
+                          value={block.content}
+                          onChange={(e) => updateBlock(index, "content", e.target.value)}
+                          placeholder="Rédigez le texte ici... HTML supporté (<h2>, <p>, <ul>...)"
+                          rows={Math.max(5, (block.content?.split('\\n').length || 1) + 1)}
+                          className="font-mono text-sm resize-y"
+                        />
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <Input
+                                id={`block-${block.id}`}
+                                value={block.url}
+                                onChange={(e) => updateBlock(index, "url", e.target.value)}
+                                placeholder={
+                                  block.type === "video"
+                                    ? "URL YouTube (ex: https://www.youtube.com/embed/...)"
+                                    : block.type === "pdf"
+                                    ? "URL du fichier PDF"
+                                    : "URL de l'image"
+                                }
+                                className="text-sm"
                               />
-                              <Button 
-                                type="button" 
-                                variant="outline" 
-                                size="sm"
-                                disabled={uploadingMedia === index}
-                              >
-                                {uploadingMedia === index ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <Upload className="h-4 w-4" />
-                                )}
-                              </Button>
+                            </div>
+                            {(block.type === "image" || block.type === "pdf") && (
+                              <div className="relative">
+                                <input
+                                  type="file"
+                                  accept={block.type === "image" ? "image/*" : ".pdf"}
+                                  onChange={(e) => handleMediaUpload(index, e)}
+                                  className="absolute inset-0 opacity-0 cursor-pointer"
+                                />
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  size="icon"
+                                  disabled={uploadingMedia === index}
+                                >
+                                  {uploadingMedia === index ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Upload className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+
+                          <Input
+                            value={block.caption || ""}
+                            onChange={(e) => updateBlock(index, "caption", e.target.value)}
+                            placeholder="Légende (optionnelle)"
+                            className="text-sm"
+                          />
+
+                          {block.type === "image" && block.url && (
+                            <div className="relative h-32 w-full rounded overflow-hidden bg-muted border border-border">
+                              <NextImage
+                                src={block.url}
+                                alt={block.caption || "Preview"}
+                                fill
+                                className="object-cover"
+                              />
                             </div>
                           )}
                         </div>
-
-                        <Input
-                          value={item.caption || ""}
-                          onChange={(e) => updateMedia(index, "caption", e.target.value)}
-                          placeholder="Légende (optionnel)"
-                          className="text-sm"
-                        />
-
-                        {item.type === "image" && item.url && (
-                          <div className="relative h-32 w-full rounded overflow-hidden bg-muted">
-                            <NextImage
-                              src={item.url}
-                              alt={item.caption || "Preview"}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeMedia(index)}
-                        className="text-muted-foreground hover:text-destructive self-start"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      )}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Image className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                  <p className="text-sm">Aucun média additionnel</p>
-                  <p className="text-xs mt-1">
-                    Ajoutez des images, vidéos YouTube ou documents PDF
-                  </p>
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -403,18 +504,43 @@ export function ArticleEditor({ article, mode }: ArticleEditorProps) {
                 </select>
               </div>
 
+              <div className="flex items-center space-x-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="is_featured"
+                  name="is_featured"
+                  checked={formData.is_featured}
+                  onChange={(e) => setFormData(prev => ({ ...prev, is_featured: e.target.checked }))}
+                  className="rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <Label htmlFor="is_featured" className="text-sm font-medium cursor-pointer">
+                  Mettre à la une (Hero Section)
+                </Label>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="author" className="text-sm font-medium">
                   Auteur <span className="text-primary">*</span>
                 </Label>
-                <Input
+                <select
                   id="author"
                   name="author"
                   value={formData.author}
                   onChange={handleChange}
-                  placeholder="Nom de l'auteur"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   required
-                />
+                >
+                  <option value="" disabled>Sélectionner un auteur</option>
+                  {authors.map((author) => (
+                    <option key={author.id} value={author.name}>
+                      {author.name}
+                    </option>
+                  ))}
+                  {/* Fallback for existing articles with unlisted authors */}
+                  {formData.author && !authors.find(a => a.name === formData.author) && (
+                    <option value={formData.author}>{formData.author} (Non répertorié)</option>
+                  )}
+                </select>
               </div>
 
               <div className="space-y-2">

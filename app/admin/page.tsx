@@ -1,8 +1,4 @@
-"use client"
-
-import { useState } from "react"
 import Link from "next/link"
-import { articles as initialArticles, categories } from "@/lib/data"
 import { formatDate } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,32 +14,22 @@ import {
   FileIcon,
   ArrowUpRight,
 } from "lucide-react"
+import { getAllArticlesAdmin } from "@/lib/actions/articles"
+import { getCategories } from "@/lib/actions/categories"
 
-// Mock view data
-const mockViews = {
-  "1": 1247,
-  "2": 892,
-  "3": 2341,
-  "4": 567,
-  "5": 1123,
-  "6": 445,
-}
-
-const totalViews = Object.values(mockViews).reduce((a, b) => a + b, 0)
-
-export default function AdminDashboard() {
-  const [articles] = useState(initialArticles)
+export default async function AdminDashboard() {
+  const articles = await getAllArticlesAdmin()
+  const categories = await getCategories()
 
   const publishedArticles = articles.filter((a) => a.status === "published")
   const draftArticles = articles.filter((a) => a.status === "draft")
-  const recentArticles = [...articles].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  ).slice(0, 5)
+  const recentArticles = [...articles].slice(0, 5) // already sorted by created_at
 
   const topArticles = [...articles]
-    .map((a) => ({ ...a, views: mockViews[a.id as keyof typeof mockViews] || 0 }))
-    .sort((a, b) => b.views - a.views)
+    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
     .slice(0, 5)
+
+  const totalViews = articles.reduce((acc, a) => acc + (a.view_count || 0), 0)
 
   return (
     <div className="p-6 lg:p-8 lg:pt-8 pt-20">
@@ -226,7 +212,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-right">
                     <div className="font-semibold text-sm">
-                      {article.views.toLocaleString()}
+                      {(article.view_count || 0).toLocaleString()}
                     </div>
                     <div className="text-xs text-muted-foreground">vues</div>
                   </div>

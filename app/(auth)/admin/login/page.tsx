@@ -57,8 +57,8 @@ export default function AdminLoginPage() {
       return
     }
 
-    router.push("/admin")
-    router.refresh()
+    // Force a hard navigation to ensure cookies are sent to middleware
+    window.location.href = "/admin"
   }
 
   return (
@@ -145,7 +145,7 @@ export default function AdminLoginPage() {
           </form>
 
           {/* Default credentials hint */}
-          <div className="mt-6 p-4 bg-muted rounded-md border border-border">
+          {/* <div className="mt-6 p-4 bg-muted rounded-md border border-border">
             <p className="text-xs text-muted-foreground text-center mb-2">
               Identifiants par défaut :
             </p>
@@ -155,7 +155,7 @@ export default function AdminLoginPage() {
             <p className="text-xs text-foreground text-center font-mono">
               afrotacles@123
             </p>
-          </div>
+          </div> */}
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">

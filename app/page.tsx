@@ -1,13 +1,24 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ArticleCard } from "@/components/article-card"
-import { articles, categories, getLatestArticles, getArticlesByCategory, getFeaturedArticle } from "@/lib/data"
+import { getFeaturedArticle, getLatestArticles, getArticlesByCategory, getPopularArticles, getCategories } from "@/lib/actions/articles"
+import { InfiniteArticleList } from "@/components/infinite-article-list"
 import Link from "next/link"
 
-export default function HomePage() {
-  const featuredArticle = getFeaturedArticle()
-  const latestArticles = getLatestArticles(10)
-  const secondaryArticles = latestArticles.slice(1, 5)
+export default async function HomePage() {
+  // Fetch initial data simultaneously
+  const [featuredArticle, latestArticles, popularArticles, categories] = await Promise.all([
+    getFeaturedArticle(),
+    getLatestArticles(1, 11), // 5 for sidebar/top + 6 for infinite list start
+    getPopularArticles(5),
+    getCategories()
+  ])
+
+  // Featured article is the most recent published
+  // Secondary articles = next 4 after featured (for hero sidebar)
+  // Infinite list = everything from index 1 onward (overlaps with secondary, deduped by component)
+  const secondaryArticles = latestArticles.slice(0, 4)
+  const initialInfiniteArticles = latestArticles.slice(0, 10)
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -50,11 +61,7 @@ export default function HomePage() {
                 <h2 className="text-sm font-bold uppercase tracking-wider text-foreground border-b border-border pb-2 mb-6">
                   Derniers articles
                 </h2>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {latestArticles.slice(5, 11).map((article) => (
-                    <ArticleCard key={article.id} article={article} />
-                  ))}
-                </div>
+                <InfiniteArticleList initialArticles={initialInfiniteArticles} />
               </div>
 
               {/* Sidebar */}
@@ -66,7 +73,7 @@ export default function HomePage() {
                       Les plus lus
                     </h3>
                     <div>
-                      {latestArticles.slice(0, 5).map((article) => (
+                      {popularArticles.map((article) => (
                         <ArticleCard key={article.id} article={article} variant="compact" />
                       ))}
                     </div>
@@ -78,8 +85,8 @@ export default function HomePage() {
         </section>
 
         {/* Category Sections */}
-        {categories.map((category) => {
-          const categoryArticles = getArticlesByCategory(category.slug)
+        {await Promise.all(categories.map(async (category: any) => {
+          const categoryArticles = await getArticlesByCategory(category.slug)
           if (categoryArticles.length === 0) return null
           
           return (
@@ -90,7 +97,7 @@ export default function HomePage() {
               articles={categoryArticles}
             />
           )
-        })}
+        }))}
       </main>
       
       <Footer />
@@ -105,7 +112,7 @@ function CategorySection({
 }: { 
   title: string
   slug: string
-  articles: typeof import("@/lib/data").articles
+  articles: any[]
 }) {
   const mainArticle = articles[0]
   const secondaryArticles = articles.slice(1, 4)

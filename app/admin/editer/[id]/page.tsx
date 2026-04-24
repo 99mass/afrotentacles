@@ -1,24 +1,26 @@
 import { ArticleEditor } from "@/components/article-editor"
-import { articles } from "@/lib/data"
+import { getArticleById, getCategories } from "@/lib/actions/articles"
+import { getAuthors } from "@/lib/actions/authors"
 import { notFound } from "next/navigation"
 
 interface EditArticlePageProps {
   params: Promise<{ id: string }>
 }
 
-export async function generateStaticParams() {
-  return articles.map((article) => ({
-    id: article.id,
-  }))
-}
 
 export default async function EditArticlePage({ params }: EditArticlePageProps) {
   const { id } = await params
-  const article = articles.find((a) => a.id === id)
-
+  
+  // getArticleById isn't created yet, wait, we have getArticleBySlug but not getArticleById!
+  const [article, categories, authors] = await Promise.all([
+    getArticleById(id),
+    getCategories(),
+    getAuthors()
+  ])
+  
   if (!article) {
     notFound()
   }
 
-  return <ArticleEditor article={article} mode="edit" />
+  return <ArticleEditor article={article} mode="edit" categories={categories} authors={authors} />
 }

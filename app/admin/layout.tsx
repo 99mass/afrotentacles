@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { AdminSidebar } from "@/components/admin-sidebar"
+import { Toaster } from "@/components/ui/sonner"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export default async function AdminLayout({
       <main className="flex-1 min-h-screen overflow-auto">
         {children}
       </main>
+      <Toaster position="bottom-right" richColors closeButton />
     </div>
   )
 }

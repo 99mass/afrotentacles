@@ -1,7 +1,8 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ArticleCard } from "@/components/article-card"
-import { getArticlesByCategory, getCategoryBySlug, categories, getLatestArticles } from "@/lib/data"
+import { getArticlesByCategory, getCategoryBySlug, getCategories, getLatestArticles } from "@/lib/actions/articles"
+import { createStaticClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 
@@ -10,14 +11,18 @@ interface CategoryPageProps {
 }
 
 export async function generateStaticParams() {
-  return categories.map((category) => ({
-    slug: category.slug,
-  }))
+  // Utilise un client sans cookies — safe au build time
+  const supabase = createStaticClient()
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("slug")
+  return (categories || []).map((c) => ({ slug: c.slug }))
 }
+
 
 export async function generateMetadata({ params }: CategoryPageProps) {
   const { slug } = await params
-  const category = getCategoryBySlug(slug)
+  const category = await getCategoryBySlug(slug)
   
   if (!category) {
     return { title: "Catégorie non trouvée" }
@@ -31,14 +36,17 @@ export async function generateMetadata({ params }: CategoryPageProps) {
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params
-  const category = getCategoryBySlug(slug)
+  const category = await getCategoryBySlug(slug)
   
   if (!category) {
     notFound()
   }
 
-  const categoryArticles = getArticlesByCategory(slug)
-  const latestArticles = getLatestArticles(5)
+  const [categoryArticles, latestArticles, categories] = await Promise.all([
+    getArticlesByCategory(slug),
+    getLatestArticles(1, 5),
+    getCategories()
+  ])
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -110,7 +118,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                   {/* Recent Articles */}
                   <div>
                     <h3 className="text-sm font-bold uppercase tracking-wider border-b-2 border-primary pb-2 mb-4">
-                      Articles récents
+                      À la une globale
                     </h3>
                     <div>
                       {latestArticles.map((article) => (
