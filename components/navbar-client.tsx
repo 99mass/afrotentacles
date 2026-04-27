@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Menu, X, Search, Twitter, Linkedin, Facebook, Instagram, Youtube, Github, Send, Link as LinkIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Logo, LogoHorizontal } from "@/components/logo"
@@ -26,6 +26,8 @@ const AVAILABLE_ICONS: Record<string, any> = {
 export function NavbarClient({ categories, socialLinks = [] }: NavbarClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const hamburgerRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,13 +45,45 @@ export function NavbarClient({ categories, socialLinks = [] }: NavbarClientProps
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        mobileMenuRef.current &&
+        hamburgerRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node) &&
+        !hamburgerRef.current.contains(event.target as Node)
+      ) {
+        setMobileMenuOpen(false)
+      }
+    }
+
+    if (mobileMenuOpen) {
+      document.addEventListener("click", handleClickOutside)
+      return () => document.removeEventListener("click", handleClickOutside)
+    }
+  }, [mobileMenuOpen])
+
+  // Close menu on window resize (when crossing from mobile to desktop breakpoint)
+  useEffect(() => {
+    const handleResize = () => {
+      // Close menu if window width goes above lg breakpoint (1024px)
+      if (window.innerWidth >= 1024) {
+        setMobileMenuOpen(false)
+      }
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
   return (
     <header className="sticky top-0 z-50 flex flex-col">
       {/* Top red accent bar */}
       <div className="h-1 bg-primary relative z-10 shrink-0" />
       
         {/* Top bar with social icons - dark background */}
-        <div className="bg-foreground text-background shrink-0 relative z-10">
+        <div className="bg-foreground text-background shrink-0 relative z-30">
           <div className="mx-auto max-w-7xl px-4 py-2">
             
             {/* Desktop Top Bar */}
@@ -104,9 +138,10 @@ export function NavbarClient({ categories, socialLinks = [] }: NavbarClientProps
               {/* Right: Hamburger */}
               <div className="flex-1 flex justify-end">
                 <Button
+                  ref={hamburgerRef}
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-background hover:text-primary hover:bg-transparent"
+                  className="h-8 w-8 text-background hover:text-primary hover:bg-transparent relative z-30"
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   aria-label="Toggle menu"
                 >
@@ -157,7 +192,7 @@ export function NavbarClient({ categories, socialLinks = [] }: NavbarClientProps
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-foreground absolute w-full z-20">
+        <div ref={mobileMenuRef} className="lg:hidden bg-foreground absolute w-full z-20">
           <nav className="flex flex-col px-4 py-2 border-t border-background/10">
             {categories.map((category) => (
               <Link
