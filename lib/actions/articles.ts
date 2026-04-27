@@ -84,18 +84,6 @@ export async function searchArticles(query: string): Promise<Article[]> {
   return (data || []).map(mapToArticle)
 }
 
-// export async function getArticlesByCategory(categorySlug: string, limit = 10): Promise<Article[]> {
-//   const supabase = await createClient()
-//   const { data } = await supabase
-//     .from("articles")
-//     .select("*")
-//     .eq("status", "published")
-//     .eq("category_slug", categorySlug)
-//     .order("published_date", { ascending: false })
-//     .limit(limit)
-    
-//   return (data || []).map(mapToArticle)
-// }
 
 export async function getPopularArticles(limit = 5): Promise<Article[]> {
   const supabase = await createClient()
@@ -114,6 +102,7 @@ export async function getPopularArticles(limit = 5): Promise<Article[]> {
     .from("articles")
     .select("*")
     .in("id", ids)
+    .eq("status", "published")
     
   const sortedArticles = (articles || []).sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
   return sortedArticles.map(mapToArticle)
