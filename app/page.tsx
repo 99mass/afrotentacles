@@ -36,15 +36,15 @@ export default async function HomePage() {
               {/* Featured Article */}
               <div className="lg:col-span-7">
                 {featuredArticle && (
-                  <ArticleCard article={featuredArticle} variant="featured" />
+                  <ArticleCard article={featuredArticle} variant="featured" priority={true} />
                 )}
               </div>
 
               {/* Secondary Articles */}
               <div className="lg:col-span-5">
                 <div className="grid gap-6">
-                  {secondaryArticles.map((article) => (
-                    <ArticleCard key={article.id} article={article} variant="horizontal" />
+                  {secondaryArticles.map((article, index) => (
+                    <ArticleCard key={article.id} article={article} variant="horizontal" priority={index === 0} />
                   ))}
                 </div>
               </div>
