@@ -50,8 +50,6 @@ export function ArticleCard({
               {article.excerpt}
             </p>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <span className="font-medium">{article.author}</span>
-              <span>•</span>
               <time dateTime={article.date}>{formatDate(article.date)}</time>
             </div>
           </div>

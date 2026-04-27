@@ -354,7 +354,7 @@ export async function createArticle(data: any) {
     category_slug: data.category,
     category_name: data.categoryName || data.category, // we can just pass name or let trigger/view handle
     status: data.status,
-    author: data.author,
+    author: null,
     is_featured: data.is_featured,
     published_date: new Date().toISOString()
   }).select().single()
@@ -391,7 +391,7 @@ export async function updateArticle(id: string, data: any) {
     category_slug: data.category,
     category_name: data.categoryName || data.category,
     status: data.status,
-    author: data.author,
+    author: null,
     is_featured: data.is_featured,
     updated_at: new Date().toISOString()
   }).eq("id", id)

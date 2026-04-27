@@ -112,8 +112,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               
               {/* Meta info */}
               <div className="flex flex-wrap items-center gap-4 mt-6 text-sm text-muted-foreground font-serif">
-                <span>Par <strong className="text-foreground font-serif">{article.author}</strong></span>
-                <span className="text-border">|</span>
                 <time className="font-serif">{formatDate(article.date)}</time>
               </div>
               
