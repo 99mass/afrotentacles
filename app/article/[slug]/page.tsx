@@ -149,22 +149,24 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </header>
           
           {/* Cover Image */}
-          <figure className="relative">
-            <div className="relative aspect-[21/9] bg-muted">
-              <Image
-                src={article.image}
-                alt={article.title}
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-            {images[0]?.caption && (
-              <figcaption className="mx-auto max-w-4xl px-4 py-2 text-sm text-muted-foreground italic font-serif">
-                {images[0].caption}
-              </figcaption>
-            )}
-          </figure>
+          {article.image && (
+            <figure className="relative">
+              <div className="relative aspect-[21/9] bg-muted">
+                <Image
+                  src={article.image}
+                  alt={article.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+              {images[0]?.caption && (
+                <figcaption className="mx-auto max-w-4xl px-4 py-2 text-sm text-muted-foreground italic font-serif">
+                  {images[0].caption}
+                </figcaption>
+              )}
+            </figure>
+          )}
           
           {/* Article Content */}
           <div className="mx-auto max-w-3xl px-4 py-12 font-serif">
@@ -240,7 +242,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 {/* Legacy PDF documents */}
                 {pdfs.length > 0 && (
                   <div className="mb-8 space-y-3 font-serif">
-                    {pdfs.map((pdf, index) => (
+                    {pdfs.filter(pdf => pdf.url).map((pdf, index) => (
                       <div key={index} className="p-4 bg-muted border border-border flex items-center justify-between font-serif">
                         <div className="flex items-center gap-3">
                           <FileText className="h-5 w-5 text-primary" />
@@ -273,21 +275,23 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     </h3>
                     <div className="grid gap-6">
                       {images.slice(1).map((image, index) => (
-                        <figure key={index}>
-                          <div className="relative aspect-[16/10] bg-muted">
-                            <Image
-                              src={image.url}
-                              alt={image.caption || `Image ${index + 2}`}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                          {image.caption && (
-                            <figcaption className="mt-2 text-sm text-muted-foreground italic font-serif">
-                              {image.caption}
-                            </figcaption>
-                          )}
-                        </figure>
+                        image.url && (
+                          <figure key={index}>
+                            <div className="relative aspect-[16/10] bg-muted">
+                              <Image
+                                src={image.url}
+                                alt={image.caption || `Image ${index + 2}`}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            {image.caption && (
+                              <figcaption className="mt-2 text-sm text-muted-foreground italic font-serif">
+                                {image.caption}
+                              </figcaption>
+                            )}
+                          </figure>
+                        )
                       ))}
                     </div>
                   </div>
@@ -300,7 +304,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                       Vidéos
                     </h3>
                     <div className="space-y-6 font-serif">
-                      {videos.map((video, index) => (
+                      {videos.filter(video => video.url).map((video, index) => (
                         <figure key={index}>
                           <div className="relative aspect-video bg-muted">
                             <iframe
