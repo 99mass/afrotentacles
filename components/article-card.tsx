@@ -10,13 +10,15 @@ interface ArticleCardProps {
   variant?: "default" | "featured" | "horizontal" | "compact"
   showCategory?: boolean
   showImage?: boolean
+  priority?: boolean
 }
 
 export function ArticleCard({ 
   article, 
   variant = "default",
   showCategory = true,
-  showImage = true
+  showImage = true,
+  priority = false
 }: ArticleCardProps) {
   
   // Featured variant - large hero style
@@ -31,6 +33,7 @@ export function ArticleCard({
                 alt={article.title}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
+                loading={priority ? "eager" : "lazy"}
               />
             </div>
           )}
@@ -69,6 +72,7 @@ export function ArticleCard({
                 alt={article.title}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
+                loading={priority ? "eager" : "lazy"}
               />
             </div>
           )}
@@ -125,6 +129,7 @@ export function ArticleCard({
               alt={article.title}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
+              loading={priority ? "eager" : "lazy"}
             />
           </div>
         )}
