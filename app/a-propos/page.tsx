@@ -16,23 +16,23 @@ export default async function AboutPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
-      <main className="flex-1">
+      <main className="flex-1 font-serif">
         {/* Header */}
-        <section className="border-b border-border bg-foreground text-background">
-          <div className="mx-auto max-w-4xl px-4 py-16 text-center">
+        <section className="border-b border-border bg-foreground text-background font-serif">
+          <div className="mx-auto max-w-4xl px-4 py-16 text-center font-serif">
             <h1 className="font-serif text-4xl md:text-5xl font-bold text-balance">
               À propos d&apos;AfroTentacles
             </h1>
-            <p className="text-lg text-background/70 mt-4 max-w-2xl mx-auto">
+            <p className="text-lg text-background/70 mt-4 max-w-2xl mx-auto font-serif">
               Comprendre les équilibres africains
             </p>
           </div>
         </section>
 
         {/* Content */}
-        <section className="py-16">
-          <div className="mx-auto max-w-3xl px-4">
-            <div className="prose prose-lg max-w-none">
+        <section className="py-16 font-serif">
+          <div className="mx-auto max-w-3xl px-4 font-serif">
+            <div className="prose prose-lg max-w-none font-serif">
               <p className="text-xl leading-relaxed text-foreground">
                 <strong className="font-serif">AfroTentacles</strong> est une plateforme d&apos;information et d&apos;analyse qui propose une lecture approfondie des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d&apos;influence.
               </p>

@@ -26,13 +26,13 @@ export default async function HomePage() {
       
       <main className="flex-1">
         {/* Hero Section - À la Une */}
-        <section className="border-b border-border">
+        <section className="border-b border-border font-serif">
           <div className="mx-auto max-w-7xl px-4 py-8">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-primary border-b-2 border-primary pb-2 mb-6 inline-block">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-primary border-b-2 border-primary pb-2 mb-6 inline-block font-serif">
               À la Une
             </h2>
             
-            <div className="grid lg:grid-cols-12 gap-8">
+            <div className="grid lg:grid-cols-12 gap-8 font-serif">
               {/* Featured Article */}
               <div className="lg:col-span-7">
                 {featuredArticle && (
@@ -53,23 +53,23 @@ export default async function HomePage() {
         </section>
 
         {/* Main Content with Sidebar */}
-        <section className="py-8">
+        <section className="py-8 font-serif">
           <div className="mx-auto max-w-7xl px-4">
-            <div className="grid lg:grid-cols-12 gap-8">
+            <div className="grid lg:grid-cols-12 gap-8 font-serif">
               {/* Main Column - Latest Articles Grid */}
-              <div className="lg:col-span-8">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-foreground border-b border-border pb-2 mb-6">
+              <div className="lg:col-span-8 font-serif">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-foreground border-b border-border pb-2 mb-6 font-serif">
                   Derniers articles
                 </h2>
                 <InfiniteArticleList initialArticles={initialInfiniteArticles} />
               </div>
 
               {/* Sidebar */}
-              <aside className="lg:col-span-4">
-                <div className="sticky top-32">
+              <aside className="lg:col-span-4 font-serif">
+                <div className="sticky top-32 font-serif">
                   {/* Trending */}
-                  <div className="mb-8">
-                    <h3 className="text-sm font-bold uppercase tracking-wider border-b-2 border-primary pb-2 mb-4">
+                  <div className="mb-8 font-serif">
+                    <h3 className="text-sm font-bold uppercase tracking-wider border-b-2 border-primary pb-2 mb-4 font-serif">
                       Les plus lus
                     </h3>
                     <div>
@@ -118,29 +118,29 @@ function CategorySection({
   const secondaryArticles = articles.slice(1, 4)
 
   return (
-    <section className="py-8 border-t border-border">
-      <div className="mx-auto max-w-7xl px-4">
+    <section className="py-8 border-t border-border font-serif">
+      <div className="mx-auto max-w-7xl px-4 font-serif">
         {/* Section Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-foreground border-b-2 border-primary pb-2">
+        <div className="flex items-center justify-between mb-6 font-serif">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-foreground border-b-2 border-primary pb-2 font-serif">
             {title}
           </h2>
-          <Link href={`/categorie/${slug}`} className="text-sm text-primary hover:underline">
+          <Link href={`/categorie/${slug}`} className="text-sm text-primary hover:underline font-serif">
             Tous les articles &rarr;
           </Link>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-8">
+        <div className="grid lg:grid-cols-12 gap-8 font-serif">
           {/* Main Article */}
-          <div className="lg:col-span-6">
+          <div className="lg:col-span-6 font-serif">
             {mainArticle && (
               <ArticleCard article={mainArticle} showCategory={false} />
             )}
           </div>
 
           {/* Secondary Articles */}
-          <div className="lg:col-span-6">
-            <div className="grid gap-4">
+          <div className="lg:col-span-6 font-serif">
+            <div className="grid gap-4 font-serif">
               {secondaryArticles.map((article) => (
                 <ArticleCard key={article.id} article={article} variant="horizontal" showCategory={false} />
               ))}

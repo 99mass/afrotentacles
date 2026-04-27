@@ -124,3 +124,103 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Article content styling */
+@layer components {
+  .article-content {
+    @apply text-foreground leading-relaxed font-serif;
+  }
+
+  .article-content p {
+    @apply my-5 text-base font-serif;
+  }
+
+  .article-content h1 {
+    @apply text-3xl font-serif font-bold my-8 mt-10 mb-6;
+  }
+
+  .article-content h2 {
+    @apply text-2xl font-serif font-bold my-8 mt-10 mb-6;
+  }
+
+  .article-content h3 {
+    @apply text-xl font-serif font-bold my-6 mt-8 mb-4;
+  }
+
+  .article-content h4,
+  .article-content h5,
+  .article-content h6 {
+    @apply font-serif font-bold my-4 mt-6 mb-3;
+  }
+
+  .article-content ul,
+  .article-content ol {
+    @apply my-6 ml-6 font-serif;
+  }
+
+  .article-content li {
+    @apply my-2 ml-2 font-serif;
+  }
+
+  .article-content ul li {
+    @apply list-disc;
+  }
+
+  .article-content ol li {
+    @apply list-decimal;
+  }
+
+  .article-content blockquote {
+    @apply border-l-4 border-primary pl-4 my-6 italic text-muted-foreground font-serif;
+  }
+
+  .article-content code {
+    @apply bg-muted px-2 py-1 rounded text-pink-600 dark:text-pink-400 font-mono text-sm;
+  }
+
+  .article-content pre {
+    @apply bg-muted p-4 rounded-lg my-6 overflow-x-auto;
+  }
+
+  .article-content pre code {
+    @apply p-0 bg-transparent;
+  }
+
+  .article-content a {
+    @apply text-primary underline hover:opacity-80 transition-opacity;
+  }
+
+  .article-content strong {
+    @apply font-bold font-serif;
+  }
+
+  .article-content em {
+    @apply italic;
+  }
+
+  .article-content s,
+  .article-content del {
+    @apply line-through text-muted-foreground;
+  }
+
+  .article-content hr {
+    @apply my-8 border-t border-border;
+  }
+
+  .article-content img {
+    @apply rounded-lg;
+  }
+
+  .article-content table {
+    @apply w-full border-collapse my-6 font-serif;
+  }
+
+  .article-content th,
+  .article-content td {
+    @apply border border-border px-4 py-2;
+  }
+
+  .article-content th {
+    @apply bg-muted font-bold;
+  }
+}
