@@ -1,0 +1,162 @@
+/* Rich Text Editor Styles */
+
+.rich-text-content {
+  font-family: var(--font-serif, Georgia, serif);
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.rich-text-content > * {
+  margin-bottom: 1rem;
+  margin-top: 0;
+  font-family: var(--font-serif, Georgia, serif);
+}
+
+.rich-text-content > *:first-child {
+  margin-top: 0;
+}
+
+.rich-text-content > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Paragraphs */
+.rich-text-content p {
+  line-height: 1.8;
+  margin: 1rem 0;
+  font-family: var(--font-serif, Georgia, serif);
+}
+
+.rich-text-content p:first-child {
+  margin-top: 0;
+}
+
+.rich-text-content p:last-child {
+  margin-bottom: 0;
+}
+
+.rich-text-content p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Headings */
+.rich-text-content h1,
+.rich-text-content h2,
+.rich-text-content h3 {
+  font-family: var(--font-serif, Georgia, serif);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 2rem 0 1rem 0;
+}
+
+.rich-text-content h1:first-child,
+.rich-text-content h2:first-child,
+.rich-text-content h3:first-child {
+  margin-top: 0;
+}
+
+.rich-text-content h1 {
+  font-size: 2rem;
+}
+
+.rich-text-content h2 {
+  font-size: 1.5rem;
+}
+
+.rich-text-content h3 {
+  font-size: 1.25rem;
+}
+
+/* Lists */
+.rich-text-content ul,
+.rich-text-content ol {
+  margin: 1.5rem 0;
+  padding-left: 1.5rem;
+  line-height: 1.8;
+}
+
+.rich-text-content li {
+  margin: 0.5rem 0;
+}
+
+/* Links */
+.rich-text-content a {
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.rich-text-content a:hover {
+  opacity: 0.7;
+}
+
+/* Blockquotes */
+.rich-text-content blockquote {
+  padding-left: 1rem;
+  margin: 1rem 0;
+  border-left: 3px solid #0066cc;
+  color: #666;
+  font-style: italic;
+}
+
+/* Code */
+.rich-text-content code {
+  background-color: #f0f0f0;
+  border-radius: 0.25rem;
+  color: #d63384;
+  padding: 0.2rem 0.4rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875em;
+}
+
+.rich-text-content pre {
+  background-color: #f0f0f0;
+  border-radius: 0.5rem;
+  color: #666;
+  font-family: 'Courier New', Courier, monospace;
+  margin: 1rem 0;
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.rich-text-content pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+/* Strikethrough */
+.rich-text-content s,
+.rich-text-content del {
+  text-decoration: line-through;
+  color: #999;
+}
+
+/* Bold and Italic */
+.rich-text-content strong,
+.rich-text-content b {
+  font-weight: 700;
+}
+
+.rich-text-content em,
+.rich-text-content i {
+  font-style: italic;
+}
+
+/* Horizontal rule */
+.rich-text-content hr {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 2rem 0;
+}
+
+/* Hard break */
+.rich-text-content br {
+  display: block;
+  height: 0;
+}

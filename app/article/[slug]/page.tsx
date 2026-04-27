@@ -9,6 +9,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Twitter, Linkedin, Facebook, FileText, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import "@/styles/article-content.css"
 
 function getEmbedUrl(url: string) {
   if (!url) return url
@@ -82,10 +83,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <ViewTracker slug={article.slug} />
         <article>
           {/* Article Header */}
-          <header className="border-b border-border">
+          <header className="border-b border-border font-serif">
             <div className="mx-auto max-w-4xl px-4 py-8">
               {/* Breadcrumb */}
-              <nav className="text-sm text-muted-foreground mb-6">
+              <nav className="text-sm text-muted-foreground mb-6 font-serif">
                 <Link href="/" className="hover:text-primary transition-colors">Accueil</Link>
                 <span className="mx-2">/</span>
                 <Link 
@@ -97,7 +98,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               </nav>
               
               {/* Category tag */}
-              <span className="inline-block text-sm font-semibold uppercase tracking-wider text-primary mb-3">
+              <span className="inline-block text-sm font-semibold uppercase tracking-wider text-primary mb-3 font-serif">
                 {article.category}
               </span>
               
@@ -105,20 +106,20 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 {article.title}
               </h1>
               
-              <p className="text-lg text-muted-foreground mt-4 max-w-3xl leading-relaxed">
+              <p className="text-lg text-muted-foreground mt-4 max-w-3xl leading-relaxed font-serif">
                 {article.excerpt}
               </p>
               
               {/* Meta info */}
-              <div className="flex flex-wrap items-center gap-4 mt-6 text-sm text-muted-foreground">
-                <span>Par <strong className="text-foreground">{article.author}</strong></span>
+              <div className="flex flex-wrap items-center gap-4 mt-6 text-sm text-muted-foreground font-serif">
+                <span>Par <strong className="text-foreground font-serif">{article.author}</strong></span>
                 <span className="text-border">|</span>
-                <time>{formatDate(article.date)}</time>
+                <time className="font-serif">{formatDate(article.date)}</time>
               </div>
               
               {/* Share buttons */}
-              <div className="flex items-center gap-3 mt-6">
-                <span className="text-sm text-muted-foreground">Partager:</span>
+              <div className="flex items-center gap-3 mt-6 font-serif">
+                <span className="text-sm text-muted-foreground font-serif">Partager:</span>
                 <Link
                   href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`}
                   target="_blank"
@@ -159,26 +160,26 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               />
             </div>
             {images[0]?.caption && (
-              <figcaption className="mx-auto max-w-4xl px-4 py-2 text-sm text-muted-foreground italic">
+              <figcaption className="mx-auto max-w-4xl px-4 py-2 text-sm text-muted-foreground italic font-serif">
                 {images[0].caption}
               </figcaption>
             )}
           </figure>
           
           {/* Article Content */}
-          <div className="mx-auto max-w-3xl px-4 py-12">
+          <div className="mx-auto max-w-3xl px-4 py-12 font-serif">
             {isJsonBlocks ? (
-              <div className="space-y-8">
+              <div className="space-y-8 font-serif">
                 {blocks.map((block, idx) => (
-                  <div key={block.id || idx}>
+                  <div key={block.id || idx} className="font-serif">
                     {block.type === 'text' && (
                       <div 
-                        className="prose prose-lg max-w-none prose-headings:font-serif prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-p:text-foreground prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
+                        className="article-content"
                         dangerouslySetInnerHTML={{ __html: block.content }}
                       />
                     )}
                     {block.type === 'image' && block.url && (
-                      <figure className="my-8">
+                      <figure className="my-8 font-serif">
                         <div className="relative aspect-[16/10] bg-muted w-full rounded-lg overflow-hidden">
                           <Image
                             src={block.url}
@@ -188,14 +189,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                           />
                         </div>
                         {block.caption && (
-                          <figcaption className="mt-3 text-center text-sm text-muted-foreground italic">
+                          <figcaption className="mt-3 text-center text-sm text-muted-foreground italic font-serif">
                             {block.caption}
                           </figcaption>
                         )}
                       </figure>
                     )}
                     {block.type === 'video' && block.url && (
-                      <figure className="my-8">
+                      <figure className="my-8 font-serif">
                         <div className="relative aspect-video bg-muted rounded-lg overflow-hidden shadow-sm border border-border">
                           <iframe
                             src={getEmbedUrl(block.url)}
@@ -205,21 +206,21 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                           />
                         </div>
                         {block.caption && (
-                          <figcaption className="mt-3 text-center text-sm text-muted-foreground italic">
+                          <figcaption className="mt-3 text-center text-sm text-muted-foreground italic font-serif">
                             {block.caption}
                           </figcaption>
                         )}
                       </figure>
                     )}
                     {block.type === 'pdf' && block.url && (
-                      <div className="my-8 p-6 bg-muted/50 rounded-lg border border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="my-8 p-6 bg-muted/50 rounded-lg border border-border flex flex-col sm:flex-row items-center justify-between gap-4 font-serif">
                         <div className="flex items-center gap-4">
                           <div className="p-3 bg-background rounded-full shadow-sm">
                             <FileText className="h-6 w-6 text-primary" />
                           </div>
                           <div>
-                            <span className="font-medium text-foreground block">{block.caption || "Document PDF"}</span>
-                            <span className="text-sm text-muted-foreground">Cliquez pour consulter ou télécharger</span>
+                            <span className="font-medium text-foreground block font-serif">{block.caption || "Document PDF"}</span>
+                            <span className="text-sm text-muted-foreground font-serif">Cliquez pour consulter ou télécharger</span>
                           </div>
                         </div>
                         <Button asChild variant="default" className="w-full sm:w-auto shrink-0">
@@ -238,13 +239,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <>
                 {/* Legacy PDF documents */}
                 {pdfs.length > 0 && (
-                  <div className="mb-8 space-y-3">
+                  <div className="mb-8 space-y-3 font-serif">
                     {pdfs.map((pdf, index) => (
-                      <div key={index} className="p-4 bg-muted border border-border flex items-center justify-between">
+                      <div key={index} className="p-4 bg-muted border border-border flex items-center justify-between font-serif">
                         <div className="flex items-center gap-3">
                           <FileText className="h-5 w-5 text-primary" />
                           <div>
-                            <span className="text-sm font-medium block">{pdf.caption || "Document PDF"}</span>
+                            <span className="text-sm font-medium block font-serif">{pdf.caption || "Document PDF"}</span>
                           </div>
                         </div>
                         <Button asChild variant="outline" size="sm">
@@ -260,13 +261,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 
                 {/* Legacy Article body */}
                 <div 
-                  className="prose prose-lg max-w-none prose-headings:font-serif prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-p:text-foreground prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
+                  className="prose prose-lg max-w-none prose-headings:font-serif prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-p:text-foreground prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline font-serif"
                   dangerouslySetInnerHTML={{ __html: article.content }}
                 />
                 
                 {/* Legacy Additional Images */}
                 {images.length > 1 && (
-                  <div className="mt-12 space-y-8">
+                  <div className="mt-12 space-y-8 font-serif">
                     <h3 className="font-serif text-xl font-bold border-b border-border pb-2">
                       Images
                     </h3>
@@ -282,7 +283,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                             />
                           </div>
                           {image.caption && (
-                            <figcaption className="mt-2 text-sm text-muted-foreground italic">
+                            <figcaption className="mt-2 text-sm text-muted-foreground italic font-serif">
                               {image.caption}
                             </figcaption>
                           )}
@@ -294,11 +295,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 
                 {/* Legacy Videos */}
                 {videos.length > 0 && (
-                  <div className="mt-12 space-y-8">
+                  <div className="mt-12 space-y-8 font-serif">
                     <h3 className="font-serif text-xl font-bold border-b border-border pb-2">
                       Vidéos
                     </h3>
-                    <div className="space-y-6">
+                    <div className="space-y-6 font-serif">
                       {videos.map((video, index) => (
                         <figure key={index}>
                           <div className="relative aspect-video bg-muted">
@@ -310,7 +311,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                             />
                           </div>
                           {video.caption && (
-                            <figcaption className="mt-2 text-sm text-muted-foreground italic">
+                            <figcaption className="mt-2 text-sm text-muted-foreground italic font-serif">
                               {video.caption}
                             </figcaption>
                           )}
@@ -326,7 +327,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         
         {/* Related Articles */}
         {relatedArticles.length > 0 && (
-          <section className="bg-muted border-t border-border py-12">
+          <section className="bg-muted border-t border-border py-12 font-serif">
             <div className="mx-auto max-w-7xl px-4">
               <div className="flex items-center gap-2 mb-8">
                 <h2 className="font-serif text-2xl font-bold">Articles similaires</h2>

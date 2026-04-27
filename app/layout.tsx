@@ -45,7 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={`${playfair.variable} ${inter.variable} bg-background`}>
-      <body className="font-sans antialiased">
+      <body className="font-serif antialiased">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

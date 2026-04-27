@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { RichTextEditor } from "@/components/rich-text-editor"
 import { 
   ArrowLeft, Save, Upload, Trash2, Image, Video, FileText, 
   Loader2, Check, X, Eye, GripVertical, Plus, Type, ArrowUp, ArrowDown
@@ -408,13 +409,10 @@ export function ArticleEditor({ article, mode, categories, authors = [] }: Artic
 
                       {/* Block Content */}
                       {block.type === 'text' ? (
-                        <Textarea
-                          id={`block-${block.id}`}
+                        <RichTextEditor
                           value={block.content}
-                          onChange={(e) => updateBlock(index, "content", e.target.value)}
-                          placeholder="Rédigez le texte ici... HTML supporté (<h2>, <p>, <ul>...)"
-                          rows={Math.max(5, (block.content?.split('\\n').length || 1) + 1)}
-                          className="font-mono text-sm resize-y"
+                          onChange={(content) => updateBlock(index, "content", content)}
+                          placeholder="Rédigez votre texte ici... Utilisez les boutons pour formater (gras, italique, listes, titres, etc.)"
                         />
                       ) : (
                         <div className="space-y-3">
