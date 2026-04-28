@@ -49,6 +49,18 @@ export async function getFeaturedArticle(): Promise<Article | null> {
   return mapToArticle(data)
 }
 
+export async function getFeaturedArticles(): Promise<Article[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("articles")
+    .select("*")
+    .eq("status", "published")
+    .eq("is_featured", true)
+    .order("published_date", { ascending: false })
+  
+  return (data || []).map(mapToArticle)
+}
+
 export async function getLatestArticles(page = 1, limit = 10, excludeId?: string): Promise<Article[]> {
   const supabase = await createClient()
   
