@@ -387,10 +387,10 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
             <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border">
               <div>
                 <Label className="text-base font-semibold cursor-pointer">Activer la vidéo YouTube</Label>
-                <p className="text-sm text-muted-foreground mt-1">
+                {/* <p className="text-sm text-muted-foreground mt-1">
                   Si activée : affiche 3 articles + vidéo YouTube<br/>
                   Si désactivée : affiche 5 articles
-                </p>
+                </p> */}
               </div>
               <Switch 
                 checked={youtubeSettings.is_active}
@@ -408,17 +408,17 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
                 placeholder="Coller l'URL YouTube" 
                 disabled={!youtubeSettings.is_active}
               />
-              <p className="text-xs text-muted-foreground">
+              {/* <p className="text-xs text-muted-foreground">
                 Formats acceptés:
                 <br/>• https://www.youtube.com/watch?v=VIDEO_ID
                 <br/>• https://youtu.be/VIDEO_ID
                 <br/>• https://www.youtube.com/embed/VIDEO_ID
                 <br/>• VIDEO_ID seul
-              </p>
+              </p> */}
             </div>
 
             {/* Article Count Selector */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="articles_count">Nombre d'articles à afficher (quand la vidéo est active)</Label>
               <Select 
                 value={youtubeSettings.articles_count.toString()} 
@@ -436,7 +436,7 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
                   <SelectItem value="5">5 articles</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             {/* Preview */}
             {youtubeSettings.is_active && youtubeSettings.url && (
