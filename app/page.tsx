@@ -37,7 +37,7 @@ export default async function HomePage() {
               À la Une
             </h2>
             
-            <div className="grid lg:grid-cols-12 gap-8 font-serif">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 font-serif">
               {/* Featured Carousel */}
               <div className="lg:col-span-7">
                 <FeaturedCarousel articles={featuredArticles} />
@@ -45,7 +45,7 @@ export default async function HomePage() {
 
               {/* Secondary Articles */}
               <div className="lg:col-span-5">
-                <div className="grid gap-6">
+                <div className="grid gap-4 lg:gap-6">
                   {latestArticles.slice(0, 4).map((article, index) => (
                     <ArticleCard key={article.id} article={article} variant="horizontal" priority={index === 0} />
                   ))}
@@ -58,7 +58,7 @@ export default async function HomePage() {
         {/* Main Content with Sidebar */}
         <section className="py-8 font-serif">
           <div className="mx-auto max-w-7xl px-4">
-            <div className="grid lg:grid-cols-12 gap-8 font-serif">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 font-serif">
               {/* Main Column - Latest Articles Grid */}
               <div className="lg:col-span-8 font-serif">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-foreground border-b border-border pb-2 mb-6 font-serif">
@@ -153,7 +153,7 @@ function CategorySection({
           </Link>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-8 font-serif">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 font-serif">
           {/* Main Article */}
           <div className="lg:col-span-6 font-serif">
             {mainArticle && (
