@@ -4,9 +4,9 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { PlusCircle, Pencil, Trash2, Loader2, Link as LinkIcon, Twitter, Linkedin, Facebook, Instagram, Youtube, Github, Send } from "lucide-react"
+import { PlusCircle, Pencil, Trash2, Loader2, Link as LinkIcon, Twitter, Linkedin, Facebook, Instagram, Youtube, Github, Send, Mail, MessageCircle } from "lucide-react"
 import { toast } from "sonner"
-import { createSocialLink, updateSocialLink, deleteSocialLink, type SocialLink } from "@/lib/actions/settings"
+import { createSocialLink, updateSocialLink, deleteSocialLink, updateYouTubeSettings, updateContactLinks, type SocialLink, type YouTubeSettings, type ContactLinks } from "@/lib/actions/settings"
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,8 @@ import { Switch } from "@/components/ui/switch"
 
 interface SettingsClientPageProps {
   initialLinks: SocialLink[]
+  initialYouTubeSettings: YouTubeSettings | null
+  initialContactLinks: ContactLinks | null
 }
 
 const AVAILABLE_ICONS = [
@@ -39,11 +41,30 @@ const AVAILABLE_ICONS = [
   { id: "Link", name: "Autre lien", icon: LinkIcon },
 ]
 
-export function SettingsClientPage({ initialLinks }: SettingsClientPageProps) {
+export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initialContactLinks }: SettingsClientPageProps) {
   const [links, setLinks] = useState<SocialLink[]>(initialLinks)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [editingLink, setEditingLink] = useState<SocialLink | null>(null)
+  
+  // YouTube state
+  const [youtubeSettings, setYouTubeSettings] = useState<YouTubeSettings>(
+    initialYouTubeSettings || { url: "", is_active: false, articles_count: 3 }
+  )
+  const [isYouTubeSaving, setIsYouTubeSaving] = useState(false)
+
+  // Contact Links state
+  const [contactLinks, setContactLinks] = useState<ContactLinks>(
+    initialContactLinks || {
+      newsletter_is_active: false,
+      newsletter_url: "",
+      whatsapp_is_active: false,
+      whatsapp_number: "",
+      email_is_active: false,
+      email_address: ""
+    }
+  )
+  const [isContactSaving, setIsContactSaving] = useState(false)
   
   const [formData, setFormData] = useState({
     platform: "",
@@ -118,6 +139,66 @@ export function SettingsClientPage({ initialLinks }: SettingsClientPageProps) {
     }
   }
 
+  const convertYouTubeToEmbed = (url: string): string => {
+    if (!url) return ""
+    
+    // If it's already in embed format, return as is
+    if (url.includes("/embed/")) return url
+    
+    // Extract video ID from various formats
+    let videoId = ""
+    
+    // Format: https://www.youtube.com/watch?v=VIDEO_ID
+    if (url.includes("youtube.com/watch")) {
+      const match = url.match(/v=([a-zA-Z0-9_-]{11})/)
+      videoId = match ? match[1] : ""
+    }
+    // Format: https://youtu.be/VIDEO_ID
+    else if (url.includes("youtu.be/")) {
+      const match = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)
+      videoId = match ? match[1] : ""
+    }
+    // Format: just the video ID
+    else if (/^[a-zA-Z0-9_-]{11}$/.test(url)) {
+      videoId = url
+    }
+    
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : url
+  }
+
+  const handleYouTubeSave = async () => {
+    // Convert URL to embed format before saving
+    const embedUrl = convertYouTubeToEmbed(youtubeSettings.url)
+    const updatedSettings = { ...youtubeSettings, url: embedUrl }
+    
+    setIsYouTubeSaving(true)
+    try {
+      const result = await updateYouTubeSettings(updatedSettings)
+      if (result.error) throw new Error(result.error)
+      
+      // Update state with converted URL
+      setYouTubeSettings(updatedSettings)
+      toast.success("Paramètres YouTube mis à jour avec succès")
+    } catch (error: any) {
+      toast.error(error.message || "Une erreur est survenue")
+    } finally {
+      setIsYouTubeSaving(false)
+    }
+  }
+
+  const handleContactSave = async () => {
+    setIsContactSaving(true)
+    try {
+      const result = await updateContactLinks(contactLinks)
+      if (result.error) throw new Error(result.error)
+      toast.success("Paramètres de contact mis à jour avec succès")
+    } catch (error: any) {
+      toast.error(error.message || "Une erreur est survenue")
+    } finally {
+      setIsContactSaving(false)
+    }
+  }
+
   const getIconComponent = (iconName: string) => {
     const iconConfig = AVAILABLE_ICONS.find(i => i.id === iconName)
     const IconComponent = iconConfig ? iconConfig.icon : LinkIcon
@@ -167,7 +248,7 @@ export function SettingsClientPage({ initialLinks }: SettingsClientPageProps) {
                         <span className="font-medium">{link.platform}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-muted-foreground hidden md:table-cell max-w-[200px] truncate">
+                    <td className="px-6 py-4 text-muted-foreground hidden md:table-cell max-w-50 truncate">
                       <a href={link.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline">
                         {link.url}
                       </a>
@@ -295,6 +376,209 @@ export function SettingsClientPage({ initialLinks }: SettingsClientPageProps) {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* YouTube Settings Section */}
+      <div className="mt-12">
+        <h2 className="text-xl font-semibold mb-6">Vidéo YouTube - Section "Les plus lus"</h2>
+        
+        <div className="bg-card rounded-lg border border-border shadow-sm p-6 max-w-2xl">
+          <div className="space-y-6">
+            {/* Enable/Disable YouTube */}
+            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border">
+              <div>
+                <Label className="text-base font-semibold cursor-pointer">Activer la vidéo YouTube</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Si activée : affiche 3 articles + vidéo YouTube<br/>
+                  Si désactivée : affiche 5 articles
+                </p>
+              </div>
+              <Switch 
+                checked={youtubeSettings.is_active}
+                onCheckedChange={(checked) => setYouTubeSettings({...youtubeSettings, is_active: checked})}
+              />
+            </div>
+
+            {/* YouTube URL Input */}
+            <div className="space-y-2">
+              <Label htmlFor="youtube_url">Lien YouTube</Label>
+              <Input 
+                id="youtube_url" 
+                value={youtubeSettings.url}
+                onChange={(e) => setYouTubeSettings({...youtubeSettings, url: e.target.value})}
+                placeholder="Coller l'URL YouTube" 
+                disabled={!youtubeSettings.is_active}
+              />
+              <p className="text-xs text-muted-foreground">
+                Formats acceptés:
+                <br/>• https://www.youtube.com/watch?v=VIDEO_ID
+                <br/>• https://youtu.be/VIDEO_ID
+                <br/>• https://www.youtube.com/embed/VIDEO_ID
+                <br/>• VIDEO_ID seul
+              </p>
+            </div>
+
+            {/* Article Count Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="articles_count">Nombre d'articles à afficher (quand la vidéo est active)</Label>
+              <Select 
+                value={youtubeSettings.articles_count.toString()} 
+                onValueChange={(value) => setYouTubeSettings({...youtubeSettings, articles_count: parseInt(value)})}
+                disabled={!youtubeSettings.is_active}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir le nombre d'articles" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 article</SelectItem>
+                  <SelectItem value="2">2 articles</SelectItem>
+                  <SelectItem value="3">3 articles</SelectItem>
+                  <SelectItem value="4">4 articles</SelectItem>
+                  <SelectItem value="5">5 articles</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Preview */}
+            {youtubeSettings.is_active && youtubeSettings.url && (
+              <div className="space-y-2">
+                <Label>Aperçu</Label>
+                <div className="bg-black rounded-lg overflow-hidden aspect-video">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={convertYouTubeToEmbed(youtubeSettings.url)}
+                    title="Aperçu vidéo YouTube"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              </div>
+            )}
+
+            {/* Save Button */}
+            <Button 
+              onClick={handleYouTubeSave}
+              disabled={isYouTubeSaving}
+              className="w-full"
+            >
+              {isYouTubeSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Enregistrer les paramètres YouTube
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Links Settings Section */}
+      <div className="mt-12">
+        <h2 className="text-xl font-semibold mb-6">Liens de Contact - Footer</h2>
+        
+        <div className="bg-card rounded-lg border border-border shadow-sm p-6 max-w-2xl space-y-8">
+          {/* Newsletter Subscription */}
+          <div className="space-y-4 pb-6 border-b border-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Newsletter
+                </Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Lien d'abonnement à la newsletter
+                </p>
+              </div>
+              <Switch 
+                checked={contactLinks.newsletter_is_active}
+                onCheckedChange={(checked) => setContactLinks({...contactLinks, newsletter_is_active: checked})}
+              />
+            </div>
+            {contactLinks.newsletter_is_active && (
+              <div className="space-y-2">
+                <Label htmlFor="newsletter_url">URL Newsletter</Label>
+                <Input 
+                  id="newsletter_url" 
+                  value={contactLinks.newsletter_url}
+                  onChange={(e) => setContactLinks({...contactLinks, newsletter_url: e.target.value})}
+                  placeholder="https://..."
+                />
+              </div>
+            )}
+          </div>
+
+          {/* WhatsApp Contact */}
+          <div className="space-y-4 pb-6 border-b border-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp
+                </Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Numéro WhatsApp pour le contact
+                </p>
+              </div>
+              <Switch 
+                checked={contactLinks.whatsapp_is_active}
+                onCheckedChange={(checked) => setContactLinks({...contactLinks, whatsapp_is_active: checked})}
+              />
+            </div>
+            {contactLinks.whatsapp_is_active && (
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp_number">Numéro WhatsApp</Label>
+                <Input 
+                  id="whatsapp_number" 
+                  value={contactLinks.whatsapp_number}
+                  onChange={(e) => setContactLinks({...contactLinks, whatsapp_number: e.target.value})}
+                  placeholder="ex: +221771234567"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Format: +[code pays][numéro] (ex: +221771234567)
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Email Contact */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base font-semibold cursor-pointer flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email
+                </Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Adresse email pour le contact
+                </p>
+              </div>
+              <Switch 
+                checked={contactLinks.email_is_active}
+                onCheckedChange={(checked) => setContactLinks({...contactLinks, email_is_active: checked})}
+              />
+            </div>
+            {contactLinks.email_is_active && (
+              <div className="space-y-2">
+                <Label htmlFor="email_address">Adresse Email</Label>
+                <Input 
+                  id="email_address" 
+                  type="email"
+                  value={contactLinks.email_address}
+                  onChange={(e) => setContactLinks({...contactLinks, email_address: e.target.value})}
+                  placeholder="contact@afrotentacles.org"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Save Button */}
+          <Button 
+            onClick={handleContactSave}
+            disabled={isContactSaving}
+            className="w-full mt-6"
+          >
+            {isContactSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Enregistrer les paramètres de contact
+          </Button>
+        </div>
+      </div>
     </>
   )
 }

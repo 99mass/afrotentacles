@@ -2,17 +2,24 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ArticleCard } from "@/components/article-card"
 import { getFeaturedArticle, getLatestArticles, getArticlesByCategory, getPopularArticles, getCategories } from "@/lib/actions/articles"
+import { getYouTubeSettings } from "@/lib/actions/settings"
 import { InfiniteArticleList } from "@/components/infinite-article-list"
 import Link from "next/link"
 
 export default async function HomePage() {
   // Fetch initial data simultaneously
-  const [featuredArticle, latestArticles, popularArticles, categories] = await Promise.all([
+  const [featuredArticle, latestArticles, popularArticles, categories, youtubeSettings] = await Promise.all([
     getFeaturedArticle(),
     getLatestArticles(1, 11), // 5 for sidebar/top + 6 for infinite list start
     getPopularArticles(5),
-    getCategories()
+    getCategories(),
+    getYouTubeSettings()
   ])
+
+  // Determine number of articles to display based on YouTube settings
+  const articlesToDisplay = youtubeSettings?.is_active 
+    ? Math.min(youtubeSettings.articles_count || 3, popularArticles.length)
+    : 5
 
   // Featured article is the most recent published
   // Secondary articles = next 4 after featured (for hero sidebar)
@@ -73,11 +80,31 @@ export default async function HomePage() {
                       Les plus lus
                     </h3>
                     <div>
-                      {popularArticles.map((article) => (
+                      {popularArticles.slice(0, articlesToDisplay).map((article) => (
                         <ArticleCard key={article.id} article={article} variant="compact" />
                       ))}
                     </div>
                   </div>
+
+                  {/* YouTube Video */}
+                  {youtubeSettings?.is_active && youtubeSettings?.url && (
+                    <div className="mb-8 font-serif">
+                      <h3 className="text-sm font-bold uppercase tracking-wider border-b-2 border-primary pb-2 mb-4 font-serif">
+                        À regarder
+                      </h3>
+                      <div className="bg-black rounded-lg overflow-hidden aspect-video mb-6">
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={youtubeSettings.url}
+                          title="Vidéo YouTube"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </aside>
             </div>
