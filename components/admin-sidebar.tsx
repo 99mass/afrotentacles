@@ -118,6 +118,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         
         <Link
           href="/"
+          target="_blank"
           title={isCollapsed ? "Voir le site" : undefined}
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 mb-1 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all",
