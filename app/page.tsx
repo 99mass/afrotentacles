@@ -1,15 +1,16 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ArticleCard } from "@/components/article-card"
-import { getFeaturedArticle, getLatestArticles, getArticlesByCategory, getPopularArticles, getCategories } from "@/lib/actions/articles"
+import { getLatestArticles, getFeaturedArticles, getArticlesByCategory, getPopularArticles, getCategories } from "@/lib/actions/articles"
 import { getYouTubeSettings } from "@/lib/actions/settings"
 import { InfiniteArticleList } from "@/components/infinite-article-list"
+import { FeaturedCarousel } from "@/components/featured-carousel"
 import Link from "next/link"
 
 export default async function HomePage() {
   // Fetch initial data simultaneously
-  const [featuredArticle, latestArticles, popularArticles, categories, youtubeSettings] = await Promise.all([
-    getFeaturedArticle(),
+  const [featuredArticles, latestArticles, popularArticles, categories, youtubeSettings] = await Promise.all([
+    getFeaturedArticles(),
     getLatestArticles(1, 11), // 5 for sidebar/top + 6 for infinite list start
     getPopularArticles(5),
     getCategories(),
@@ -21,10 +22,7 @@ export default async function HomePage() {
     ? Math.min(youtubeSettings.articles_count || 3, popularArticles.length)
     : 5
 
-  // Featured article is the most recent published
-  // Secondary articles = next 4 after featured (for hero sidebar)
-  // Infinite list = everything from index 1 onward (overlaps with secondary, deduped by component)
-  const secondaryArticles = latestArticles.slice(0, 4)
+  // Infinite list = everything from index 0 onward
   const initialInfiniteArticles = latestArticles.slice(0, 10)
 
   return (
@@ -40,17 +38,15 @@ export default async function HomePage() {
             </h2>
             
             <div className="grid lg:grid-cols-12 gap-8 font-serif">
-              {/* Featured Article */}
+              {/* Featured Carousel */}
               <div className="lg:col-span-7">
-                {featuredArticle && (
-                  <ArticleCard article={featuredArticle} variant="featured" priority={true} />
-                )}
+                <FeaturedCarousel articles={featuredArticles} />
               </div>
 
               {/* Secondary Articles */}
               <div className="lg:col-span-5">
                 <div className="grid gap-6">
-                  {secondaryArticles.map((article, index) => (
+                  {latestArticles.slice(0, 4).map((article, index) => (
                     <ArticleCard key={article.id} article={article} variant="horizontal" priority={index === 0} />
                   ))}
                 </div>
