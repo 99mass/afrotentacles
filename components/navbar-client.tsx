@@ -89,7 +89,7 @@ export function NavbarClient({ categories, socialLinks = [] }: NavbarClientProps
             {/* Desktop Top Bar */}
             <div className="hidden lg:flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <span className="text-xs text-background/70">Suivez-nous :</span>
+                <span className="text-xs text-background">Suivez-nous :</span>
                 <div className="flex items-center gap-3">
                   {socialLinks.map((link) => {
                     const IconComponent = AVAILABLE_ICONS[link.icon_name] || LinkIcon
@@ -99,7 +99,7 @@ export function NavbarClient({ categories, socialLinks = [] }: NavbarClientProps
                         href={link.url} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="text-background/70 hover:text-primary transition-colors"
+                        className="text-background hover:text-primary transition-colors"
                         aria-label={link.platform}
                       >
                         <IconComponent className="h-4 w-4" />
@@ -112,7 +112,7 @@ export function NavbarClient({ categories, socialLinks = [] }: NavbarClientProps
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <Link href="/a-propos" className="text-xs text-background/70 hover:text-primary transition-colors">
+                <Link href="/a-propos" className="text-xs text-background hover:text-primary transition-colors">
                   À propos
                 </Link>
                 {/* <Link href="/admin" className="text-xs text-background/70 hover:text-primary transition-colors">
@@ -181,7 +181,7 @@ export function NavbarClient({ categories, socialLinks = [] }: NavbarClientProps
               <Link
                 key={category.slug}
                 href={`/categorie/${category.slug}`}
-                className="px-4 py-3 text-sm font-medium text-background/80 hover:text-primary border-b-2 border-transparent hover:border-primary transition-colors whitespace-nowrap"
+                className="px-4 py-3 text-sm font-medium text-background hover:text-primary border-b-2 border-transparent hover:border-primary transition-colors whitespace-nowrap"
               >
                 {category.name}
               </Link>
@@ -198,7 +198,7 @@ export function NavbarClient({ categories, socialLinks = [] }: NavbarClientProps
               <Link
                 key={category.slug}
                 href={`/categorie/${category.slug}`}
-                className="px-3 py-3 text-sm font-medium text-background/80 hover:text-primary transition-colors border-b border-background/10 last:border-0"
+                className="px-3 py-3 text-sm font-medium text-background hover:text-primary transition-colors border-b border-background/10 last:border-0"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {category.name}

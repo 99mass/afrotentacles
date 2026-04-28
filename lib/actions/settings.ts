@@ -93,3 +93,128 @@ export async function deleteSocialLink(id: string) {
   revalidatePath("/admin/parametres")
   return { success: true }
 }
+
+export interface YouTubeSettings {
+  url: string
+  is_active: boolean
+  articles_count: number
+}
+
+export async function getYouTubeSettings(): Promise<YouTubeSettings | null> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("site_settings")
+    .select("value")
+    .eq("key", "youtube_video")
+    .single()
+
+  if (error) {
+    console.error("Error fetching YouTube settings:", error)
+    return null
+  }
+
+  return data?.value as YouTubeSettings | null
+}
+
+export async function updateYouTubeSettings(settings: YouTubeSettings) {
+  const supabase = await createClient()
+  
+  // First try to update if it exists
+  const { data: existingData, error: selectError } = await supabase
+    .from("site_settings")
+    .select("id")
+    .eq("key", "youtube_video")
+    .single()
+
+  if (selectError && selectError.code !== "PGRST116") {
+    // Error other than "not found"
+    return { error: selectError.message }
+  }
+
+  // If exists, update it; otherwise insert
+  let result
+  if (existingData?.id) {
+    result = await supabase
+      .from("site_settings")
+      .update({ value: settings, updated_at: new Date().toISOString() })
+      .eq("key", "youtube_video")
+      .select()
+  } else {
+    result = await supabase
+      .from("site_settings")
+      .insert([{ key: "youtube_video", value: settings }])
+      .select()
+  }
+
+  if (result.error) {
+    return { error: result.error.message }
+  }
+
+  revalidatePath("/")
+  revalidatePath("/admin/parametres")
+  return { success: true, data: result.data }
+}
+
+export interface ContactLinks {
+  newsletter_is_active: boolean
+  newsletter_url: string
+  whatsapp_is_active: boolean
+  whatsapp_number: string
+  email_is_active: boolean
+  email_address: string
+}
+
+export async function getContactLinks(): Promise<ContactLinks | null> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("site_settings")
+    .select("value")
+    .eq("key", "contact_links")
+    .single()
+
+  if (error) {
+    console.error("Error fetching contact links:", error)
+    return null
+  }
+
+  return data?.value as ContactLinks | null
+}
+
+export async function updateContactLinks(settings: ContactLinks) {
+  const supabase = await createClient()
+  
+  // First try to update if it exists
+  const { data: existingData, error: selectError } = await supabase
+    .from("site_settings")
+    .select("id")
+    .eq("key", "contact_links")
+    .single()
+
+  if (selectError && selectError.code !== "PGRST116") {
+    // Error other than "not found"
+    return { error: selectError.message }
+  }
+
+  // If exists, update it; otherwise insert
+  let result
+  if (existingData?.id) {
+    result = await supabase
+      .from("site_settings")
+      .update({ value: settings, updated_at: new Date().toISOString() })
+      .eq("key", "contact_links")
+      .select()
+  } else {
+    result = await supabase
+      .from("site_settings")
+      .insert([{ key: "contact_links", value: settings }])
+      .select()
+  }
+
+  if (result.error) {
+    return { error: result.error.message }
+  }
+
+  revalidatePath("/")
+  revalidatePath("/admin/parametres")
+  return { success: true, data: result.data }
+}

@@ -1,4 +1,4 @@
-import { getSocialLinks } from "@/lib/actions/settings"
+import { getSocialLinks, getYouTubeSettings, getContactLinks } from "@/lib/actions/settings"
 import { SettingsClientPage } from "./settings-client-page"
 
 export const metadata = {
@@ -6,7 +6,11 @@ export const metadata = {
 }
 
 export default async function SettingsPage() {
-  const links = await getSocialLinks()
+  const [links, youtubeSettings, contactLinks] = await Promise.all([
+    getSocialLinks(),
+    getYouTubeSettings(),
+    getContactLinks()
+  ])
 
   return (
     <div className="p-8">
@@ -14,12 +18,12 @@ export default async function SettingsPage() {
         <div>
           <h1 className="text-3xl font-bold font-serif">Paramètres</h1>
           <p className="text-muted-foreground mt-1">
-            Gérez la configuration globale du site (réseaux sociaux, etc.).
+            Gérez la configuration globale du site (réseaux sociaux, vidéo YouTube, etc.).
           </p>
         </div>
       </div>
       
-      <SettingsClientPage initialLinks={links} />
+      <SettingsClientPage initialLinks={links} initialYouTubeSettings={youtubeSettings} initialContactLinks={contactLinks} />
     </div>
   )
 }
