@@ -15,9 +15,12 @@ interface FeaturedCarouselProps {
 }
 
 export function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
-  const plugin = React.useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: true })
-  )
+  const pluginRef = React.useRef<ReturnType<typeof Autoplay> | null>(null)
+
+  // Initialize or reinitialize the autoplay plugin
+  if (!pluginRef.current) {
+    pluginRef.current = Autoplay({ delay: 5000, stopOnInteraction: true })
+  }
 
   if (articles.length === 0) {
     return null
@@ -25,10 +28,10 @@ export function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
 
   return (
     <Carousel
-      plugins={[plugin.current]}
+      plugins={[pluginRef.current]}
       className="w-full"
-      onMouseEnter={plugin.current.stop}
-      onMouseLeave={plugin.current.reset}
+      onMouseEnter={() => pluginRef.current?.stop()}
+      onMouseLeave={() => pluginRef.current?.reset()}
     >
       <CarouselContent>
         {articles.map((article) => (

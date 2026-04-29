@@ -18,6 +18,10 @@ import {
   FileIcon,
   MoreVertical,
   Loader2,
+  Star,
+  Zap,
+  Check,
+  X as XIcon,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -36,7 +40,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { deleteArticle } from "@/lib/actions/articles"
+import { deleteArticle, toggleArticleFeatured, bulkDeleteArticles, bulkToggleFeatured, bulkUpdateStatus } from "@/lib/actions/articles"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
@@ -45,7 +49,11 @@ export function ArticlesListClient({ initialArticles, categories }: { initialArt
   const [searchQuery, setSearchQuery] = useState("")
   const [filterCategory, setFilterCategory] = useState("")
   const [filterStatus, setFilterStatus] = useState("")
+  const [filterFeatured, setFilterFeatured] = useState("")
+  const [selectedArticles, setSelectedArticles] = useState<Set<string>>(new Set())
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  const [isTogglingFeatured, setIsTogglingFeatured] = useState<string | null>(null)
+  const [isBulkLoading, setIsBulkLoading] = useState(false)
   const router = useRouter()
 
   const filteredArticles = articles.filter((article) => {
@@ -54,6 +62,8 @@ export function ArticlesListClient({ initialArticles, categories }: { initialArt
     }
     if (filterCategory && article.categorySlug !== filterCategory) return false
     if (filterStatus && article.status !== filterStatus) return false
+    if (filterFeatured === "true" && !article.is_featured) return false
+    if (filterFeatured === "false" && article.is_featured) return false
     return true
   })
 
@@ -73,6 +83,112 @@ export function ArticlesListClient({ initialArticles, categories }: { initialArt
       })
     } finally {
       setIsDeleting(null)
+    }
+  }
+
+  const handleToggleFeatured = async (id: string, isFeatured: boolean, title: string) => {
+    setIsTogglingFeatured(id)
+    try {
+      await toggleArticleFeatured(id, isFeatured)
+      setArticles(articles.map((a) => 
+        a.id === id ? { ...a, is_featured: !isFeatured } : a
+      ))
+      toast.success(isFeatured ? "Retiré de la une" : "Ajouté à la une", {
+        description: `"${title}" ${isFeatured ? "a été retiré de" : "a été ajouté à"} la section À la une.`,
+      })
+      router.refresh()
+    } catch (error) {
+      console.error("Failed to toggle featured", error)
+      toast.error("Erreur", {
+        description: "Impossible de modifier ce statut. Veuillez réessayer.",
+      })
+    } finally {
+      setIsTogglingFeatured(null)
+    }
+  }
+
+  const handleSelectArticle = (id: string) => {
+    const newSelected = new Set(selectedArticles)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedArticles(newSelected)
+  }
+
+  const handleSelectAll = () => {
+    if (selectedArticles.size === filteredArticles.length) {
+      setSelectedArticles(new Set())
+    } else {
+      setSelectedArticles(new Set(filteredArticles.map(a => a.id)))
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedArticles)
+    setIsBulkLoading(true)
+    try {
+      await bulkDeleteArticles(ids)
+      setArticles(articles.filter(a => !selectedArticles.has(a.id)))
+      setSelectedArticles(new Set())
+      toast.success("Articles supprimés", {
+        description: `${ids.length} article(s) ont été supprimés définitivement.`,
+      })
+      router.refresh()
+    } catch (error) {
+      console.error("Failed to bulk delete", error)
+      toast.error("Erreur lors de la suppression", {
+        description: "Impossible de supprimer les articles sélectionnés.",
+      })
+    } finally {
+      setIsBulkLoading(false)
+    }
+  }
+
+  const handleBulkToggleFeatured = async (setFeatured: boolean) => {
+    const ids = Array.from(selectedArticles)
+    setIsBulkLoading(true)
+    try {
+      await bulkToggleFeatured(ids, setFeatured)
+      setArticles(articles.map(a => 
+        selectedArticles.has(a.id) ? { ...a, is_featured: setFeatured } : a
+      ))
+      setSelectedArticles(new Set())
+      toast.success(setFeatured ? "Ajoutés à la une" : "Retirés de la une", {
+        description: `${ids.length} article(s) ont été ${setFeatured ? "ajoutés à" : "retirés de"} la section À la une.`,
+      })
+      router.refresh()
+    } catch (error) {
+      console.error("Failed to bulk toggle featured", error)
+      toast.error("Erreur", {
+        description: "Impossible de modifier les articles sélectionnés.",
+      })
+    } finally {
+      setIsBulkLoading(false)
+    }
+  }
+
+  const handleBulkUpdateStatus = async (status: "published" | "draft") => {
+    const ids = Array.from(selectedArticles)
+    setIsBulkLoading(true)
+    try {
+      await bulkUpdateStatus(ids, status)
+      setArticles(articles.map(a => 
+        selectedArticles.has(a.id) ? { ...a, status } : a
+      ))
+      setSelectedArticles(new Set())
+      toast.success(status === "published" ? "Articles publiés" : "Articles en brouillon", {
+        description: `${ids.length} article(s) ont été ${status === "published" ? "publiés" : "passés en brouillon"}.`,
+      })
+      router.refresh()
+    } catch (error) {
+      console.error("Failed to bulk update status", error)
+      toast.error("Erreur", {
+        description: "Impossible de modifier le statut des articles sélectionnés.",
+      })
+    } finally {
+      setIsBulkLoading(false)
     }
   }
 
@@ -128,6 +244,15 @@ export function ArticlesListClient({ initialArticles, categories }: { initialArt
               <option value="published">Publié</option>
               <option value="draft">Brouillon</option>
             </select>
+            <select
+              value={filterFeatured}
+              onChange={(e) => setFilterFeatured(e.target.value)}
+              className="px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">Tous les articles</option>
+              <option value="true">À la une</option>
+              <option value="false">Non à la une</option>
+            </select>
           </div>
         </CardContent>
       </Card>
@@ -137,11 +262,122 @@ export function ArticlesListClient({ initialArticles, categories }: { initialArt
         {filteredArticles.length} article{filteredArticles.length !== 1 ? "s" : ""} trouvé{filteredArticles.length !== 1 ? "s" : ""}
       </p>
 
+      {/* Bulk Actions Bar */}
+      {selectedArticles.size > 0 && (
+        <Card className="mb-6 border-primary bg-primary/5">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <p className="font-medium text-sm">
+                  {selectedArticles.size} article{selectedArticles.size !== 1 ? "s" : ""} sélectionné{selectedArticles.size !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={isBulkLoading}>
+                      {isBulkLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+                      Statut
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleBulkUpdateStatus("published")}>
+                      Publier
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBulkUpdateStatus("draft")}>
+                      Mettre en brouillon
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={isBulkLoading}>
+                      {isBulkLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Star className="h-4 w-4 mr-2" />}
+                      À la une
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleBulkToggleFeatured(true)}>
+                      Ajouter à la une
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleBulkToggleFeatured(false)}>
+                      Retirer de la une
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" disabled={isBulkLoading}>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Supprimer
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer ces articles ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {selectedArticles.size} article{selectedArticles.size !== 1 ? "s" : ""} sera{selectedArticles.size !== 1 ? "ont" : ""} définitivement supprimé{selectedArticles.size !== 1 ? "s" : ""}.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={() => handleBulkDelete()}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Supprimer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSelectedArticles(new Set())}
+                  disabled={isBulkLoading}
+                >
+                  <XIcon className="h-4 w-4 mr-2" />
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Articles Grid */}
       <div className="grid gap-4">
+        {/* Select All */}
+        {filteredArticles.length > 0 && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-lg">
+            <input
+              type="checkbox"
+              checked={selectedArticles.size === filteredArticles.length && filteredArticles.length > 0}
+              onChange={handleSelectAll}
+              className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+            />
+            <label className="text-sm font-medium cursor-pointer">
+              Sélectionner tous ({filteredArticles.length})
+            </label>
+          </div>
+        )}
+
         {filteredArticles.map((article) => (
-          <Card key={article.id} className="overflow-hidden">
+          <Card key={article.id} className={`overflow-hidden transition-colors ${selectedArticles.has(article.id) ? "border-primary bg-primary/5" : ""}`}>
             <div className="flex flex-col md:flex-row">
+              {/* Checkbox */}
+              <div className="flex items-center justify-center w-12 h-12 md:h-auto flex-shrink-0 border-r border-border bg-muted/20">
+                <input
+                  type="checkbox"
+                  checked={selectedArticles.has(article.id)}
+                  onChange={() => handleSelectArticle(article.id)}
+                  className="rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                />
+              </div>
+
               {/* Image */}
               <div className="relative w-full md:w-48 h-40 md:h-auto flex-shrink-0 bg-muted">
                 {article.image && (
@@ -208,6 +444,17 @@ export function ArticlesListClient({ initialArticles, categories }: { initialArt
                           <Pencil className="h-4 w-4 mr-2" />
                           Modifier
                         </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleToggleFeatured(article.id, article.is_featured, article.title)}
+                        disabled={isTogglingFeatured === article.id}
+                      >
+                        {isTogglingFeatured === article.id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Star className="h-4 w-4 mr-2" fill={article.is_featured ? "currentColor" : "none"} />
+                        )}
+                        {article.is_featured ? "Retirer de la une" : "Ajouter à la une"}
                       </DropdownMenuItem>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>

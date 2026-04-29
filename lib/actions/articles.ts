@@ -58,6 +58,18 @@ export async function getFeaturedArticles(): Promise<Article[]> {
     .eq("is_featured", true)
     .order("published_date", { ascending: false })
   
+  // If no featured articles, return the 5 latest articles as fallback
+  if (!data || data.length === 0) {
+    const { data: latestData } = await supabase
+      .from("articles")
+      .select("*")
+      .eq("status", "published")
+      .order("published_date", { ascending: false })
+      .limit(5)
+    
+    return (latestData || []).map(mapToArticle)
+  }
+  
   return (data || []).map(mapToArticle)
 }
 
@@ -375,6 +387,58 @@ export async function getAllArticlesAdmin() {
 export async function deleteArticle(id: string) {
   const supabase = await createClient()
   await supabase.from("articles").delete().eq("id", id)
+  revalidatePath('/admin/articles')
+  revalidatePath('/')
+}
+
+export async function toggleArticleFeatured(id: string, isFeatured: boolean) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("articles")
+    .update({ is_featured: !isFeatured })
+    .eq("id", id)
+  
+  if (error) throw new Error(error.message)
+  
+  revalidatePath('/admin/articles')
+  revalidatePath('/')
+}
+
+export async function bulkDeleteArticles(ids: string[]) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("articles")
+    .delete()
+    .in("id", ids)
+  
+  if (error) throw new Error(error.message)
+  
+  revalidatePath('/admin/articles')
+  revalidatePath('/')
+}
+
+export async function bulkToggleFeatured(ids: string[], setFeatured: boolean) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("articles")
+    .update({ is_featured: setFeatured })
+    .in("id", ids)
+  
+  if (error) throw new Error(error.message)
+  
+  revalidatePath('/admin/articles')
+  revalidatePath('/')
+}
+
+export async function bulkUpdateStatus(ids: string[], status: "published" | "draft") {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("articles")
+    .update({ status })
+    .in("id", ids)
+  
+  if (error) throw new Error(error.message)
+  
   revalidatePath('/admin/articles')
   revalidatePath('/')
 }
