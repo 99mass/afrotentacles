@@ -88,38 +88,65 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <ViewTracker slug={article.slug} />
         <article>
           {/* Full-bleed Hero Image with Solid Color & Faded Right Image */}
-          <header className="relative w-full h-[60vh] min-h-[500px] flex items-end font-serif bg-[#1a1a1a] overflow-hidden">
+          {/* === MOBILE HEADER === (hidden on md+) */}
+          <header className="md:hidden font-serif bg-[#1a1a1a]">
+            {/* Text on dark background */}
+            <div className="px-4 pt-8 pb-6">
+              <div className="flex flex-wrap items-center gap-2 mb-3 font-sans">
+                <span className="text-primary font-bold text-base tracking-widest uppercase">
+                  {article.category}
+                </span>
+                <span className="text-white/40">•</span>
+                <time className="text-white/70 text-sm tracking-wider">
+                  {formatDate(article.date)}
+                </time>
+              </div>
+              <h1 className="text-white text-2xl font-bold leading-tight tracking-tight">
+                {article.title}
+              </h1>
+            </div>
+            {/* Full-width image at natural aspect ratio */}
             {article.image && (
-              <div className="absolute right-0 top-0 h-full w-full md:w-3/4 lg:w-2/3 xl:w-3/5">
+              <div className="relative w-full aspect-[2/1]">
                 <Image
                   src={article.image}
                   alt={article.title}
                   fill
-                  className="object-cover object-center md:object-right"
+                  className="object-cover"
                   priority
-                  sizes="(max-width: 768px) 100vw, 60vw"
+                  sizes="100vw"
                 />
-                {/* Fade the left edge of the image into the solid background color */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#1a1a1a] via-[#1a1a1a]/60 to-transparent hidden md:block"></div>
-                {/* A standard dark overlay for mobile to keep text readable everywhere */}
-                <div className="absolute inset-0 bg-black/60 md:hidden"></div>
-                {/* Bottom fade */}
+              </div>
+            )}
+          </header>
+
+          {/* === DESKTOP HEADER === (hidden on mobile) */}
+          <header className="hidden md:block relative w-full h-[60vh] min-h-[500px] font-serif bg-[#1a1a1a] overflow-hidden">
+            {article.image && (
+              <div className="absolute right-0 top-0 h-full w-3/4 lg:w-2/3 xl:w-3/5">
+                <Image
+                  src={article.image}
+                  alt={article.title}
+                  fill
+                  className="object-cover object-right"
+                  priority
+                  sizes="60vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#1a1a1a] via-[#1a1a1a]/80 to-transparent"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] via-transparent to-transparent"></div>
               </div>
             )}
-            
-            {/* Title & Category overlaid on the left */}
-            <div className="relative z-10 w-full max-w-7xl mx-auto px-4 lg:px-8 pb-12 md:pb-16 flex flex-col items-start">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 font-sans">
-                <span className="text-primary font-bold text-lg md:text-xl tracking-widest uppercase">
+            <div className="relative z-10 w-full max-w-7xl mx-auto px-4 lg:px-8 pb-16 h-full flex flex-col justify-end">
+              <div className="flex items-center gap-4 mb-3 font-sans">
+                <span className="text-primary font-bold text-xl tracking-widest uppercase">
                   {article.category}
                 </span>
-                <span className="hidden sm:inline-block text-white/40">•</span>
+                <span className="text-white/40">•</span>
                 <time className="text-white/80 text-sm tracking-wider">
                   Publié le {formatDate(article.date)}
                 </time>
               </div>
-              <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold leading-tight max-w-4xl tracking-tight">
+              <h1 className="text-white text-4xl lg:text-5xl font-bold leading-tight max-w-4xl tracking-tight">
                 {article.title}
               </h1>
             </div>
