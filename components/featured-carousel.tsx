@@ -63,7 +63,7 @@ export function FeaturedCarousel({ articles }: FeaturedCarouselProps) {
           {articles.map((article, index) => (
             <CarouselItem key={article.id}>
               <Link href={`/article/${article.slug}`} className="block group">
-                <div className="relative aspect-[16/9] overflow-hidden bg-muted">
+                <div className="relative aspect-[2/1] overflow-hidden bg-muted rounded-xl">
                   <Image
                     src={article.image || ""}
                     alt={article.title}

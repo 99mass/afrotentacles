@@ -31,7 +31,7 @@ export function ArticleCard({
       <article className="group">
         <Link href={`/article/${article.slug}`} className="block">
           {showImage && article.image && (
-            <div className="relative aspect-[16/9] mb-4 overflow-hidden bg-muted">
+            <div className="relative aspect-[2/1] mb-4 overflow-hidden bg-muted rounded-xl">
               <Image
                 src={article.image}
                 alt={article.title}
@@ -68,7 +68,7 @@ export function ArticleCard({
       <article className="group">
         <Link href={`/article/${article.slug}`} className="flex gap-4 items-stretch h-28 md:h-32">
           {showImage && article.image && (
-            <div className="relative w-32 md:w-44 shrink-0 overflow-hidden bg-muted h-full">
+            <div className="relative w-32 md:w-44 shrink-0 overflow-hidden bg-muted h-full rounded-xl">
               <Image
                 src={article.image}
                 alt={article.title}
@@ -133,7 +133,7 @@ export function ArticleCard({
     <article className="group">
       <Link href={`/article/${article.slug}`} className="block">
         {showImage && article.image && (
-          <div className="relative aspect-[4/3] mb-3 overflow-hidden bg-muted">
+          <div className="relative aspect-[2/1] mb-3 overflow-hidden bg-muted rounded-xl">
             <Image
               src={article.image}
               alt={article.title}

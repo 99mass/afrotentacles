@@ -121,7 +121,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                       À la une globale
                     </h3>
                     <div className="font-serif">
-                      {latestArticles.map((article) => (
+                      {latestArticles.slice(0, 3).map((article) => (
                         <ArticleCard key={article.id} article={article} variant="compact" />
                       ))}
                     </div>
