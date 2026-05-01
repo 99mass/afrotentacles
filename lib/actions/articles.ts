@@ -202,12 +202,12 @@ export async function getCategories() {
   // Define the desired order
   const categoryOrder = [
     "À la Une",
-    "Géoéconomie",
-    "Géopolitique",
-    "Ressources & Énergie",
-    "Flux & Corridors",
-    "Institutions & Politiques publiques",
     "Influences & Puissances",
+    "Géopolitique",
+    "Institutions & Politiques publiques",
+    "Ressources & Énergie",
+    "Géoéconomie",
+    "Flux & Corridors",
     "Données & Insights"
   ]
   
