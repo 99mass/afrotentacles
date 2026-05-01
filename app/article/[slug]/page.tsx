@@ -37,10 +37,16 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   const BASE_URL = 'https://afrotentacles.com'
   const articleUrl = `${BASE_URL}/article/${article.slug}`
+  
+  const defaultKeywords = ['Afrique', 'géopolitique', 'géoéconomie', 'économie africaine', 'analyse', 'réseaux d\'influence'];
+  const articleKeywords = article.seo_keywords 
+    ? article.seo_keywords.split(',').map(k => k.trim()).filter(k => k.length > 0) 
+    : defaultKeywords;
 
   return {
     title: article.title,
     description: article.excerpt,
+    keywords: articleKeywords,
     alternates: {
       canonical: articleUrl,
     },
@@ -101,6 +107,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const wordCount = textContent.split(/\s+/).length;
   const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 
+  const defaultKeywords = ['Afrique', 'géopolitique', 'géoéconomie', 'économie africaine', 'analyse', 'réseaux d\'influence'];
+  const articleKeywords = article.seo_keywords 
+    ? article.seo_keywords.split(',').map(k => k.trim()).filter(k => k.length > 0) 
+    : defaultKeywords;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -110,6 +121,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     },
     "headline": article.title,
     "description": article.excerpt,
+    "keywords": articleKeywords.join(", "),
     "image": article.image ? [article.image] : ['https://afrotentacles.com/og-default.png'],
     "datePublished": new Date(article.date).toISOString(),
     "dateModified": new Date(article.date).toISOString(),
