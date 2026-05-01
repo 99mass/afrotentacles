@@ -3,7 +3,6 @@ import { Footer } from "@/components/footer"
 import { ArticleCard } from "@/components/article-card"
 import { getLatestArticles, getFeaturedArticles, getArticlesByCategory, getPopularArticles, getCategories } from "@/lib/actions/articles"
 import { getYouTubeSettings } from "@/lib/actions/settings"
-import { InfiniteArticleList } from "@/components/infinite-article-list"
 import { FeaturedCarousel } from "@/components/featured-carousel"
 import Link from "next/link"
 
@@ -17,13 +16,7 @@ export default async function HomePage() {
     getYouTubeSettings()
   ])
 
-  // Determine number of articles to display based on YouTube settings
-  const articlesToDisplay = youtubeSettings?.is_active 
-    ? Math.min(youtubeSettings.articles_count || 3, popularArticles.length)
-    : 5
 
-  // Infinite list = everything from index 0 onward
-  const initialInfiniteArticles = latestArticles.slice(0, 10)
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -47,7 +40,7 @@ export default async function HomePage() {
               <div className="lg:col-span-5">
                 <div className="grid gap-4 lg:gap-6">
                   {latestArticles.slice(0, 4).map((article, index) => (
-                    <ArticleCard key={article.id} article={article} variant="horizontal" priority={index === 0} />
+                    <ArticleCard key={article.id} article={article} variant="horizontal" priority={index === 0} showExcerpt={true} excerptClamp={1} />
                   ))}
                 </div>
               </div>
@@ -55,72 +48,68 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Main Content with Sidebar */}
-        <section className="py-8 font-serif">
-          <div className="mx-auto max-w-7xl px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 font-serif">
-              {/* Main Column - Latest Articles Grid */}
-              <div className="lg:col-span-8 font-serif">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-foreground border-b border-border pb-2 mb-6 font-serif">
-                  Derniers articles
-                </h2>
-                <InfiniteArticleList initialArticles={initialInfiniteArticles} />
-              </div>
 
-              {/* Sidebar */}
-              <aside className="lg:col-span-4 font-serif">
-                <div className="sticky top-32 font-serif">
-                  {/* Trending */}
+
+        {/* Main Content Area: Categories (Left) & Sidebar (Right) */}
+        <div className="mx-auto max-w-7xl px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+            
+            {/* Left Column: Categories */}
+            <div className="lg:col-span-9 flex flex-col">
+              {await Promise.all(categories.filter((c: any) => c.name !== "À la Une").map(async (category: any) => {
+                const categoryArticles = await getArticlesByCategory(category.slug)
+                if (categoryArticles.length === 0) return null
+                
+                return (
+                  <CategorySection 
+                    key={category.slug}
+                    title={category.name}
+                    slug={category.slug}
+                    articles={categoryArticles}
+                  />
+                )
+              }))}
+            </div>
+
+            {/* Right Column: Sidebar */}
+            <aside className="lg:col-span-3 font-serif">
+              <div className="sticky top-32 font-serif">
+                {/* Trending */}
+                <div className="mb-8 font-serif">
+                  <h3 className="text-sm font-bold uppercase tracking-wider border-b-2 border-primary pb-2 mb-4 font-serif text-foreground">
+                    Les plus lus
+                  </h3>
+                  <div>
+                    {popularArticles.slice(0, 3).map((article) => (
+                      <ArticleCard key={article.id} article={article} variant="compact" />
+                    ))}
+                  </div>
+                </div>
+
+                {/* YouTube Video */}
+                {youtubeSettings?.is_active && youtubeSettings?.url && (
                   <div className="mb-8 font-serif">
-                    <h3 className="text-sm font-bold uppercase tracking-wider border-b-2 border-primary pb-2 mb-4 font-serif">
-                      Les plus lus
+                    <h3 className="text-sm font-bold uppercase tracking-wider border-b-2 border-primary pb-2 mb-4 font-serif text-foreground">
+                      À regarder
                     </h3>
-                    <div>
-                      {popularArticles.slice(0, articlesToDisplay).map((article) => (
-                        <ArticleCard key={article.id} article={article} variant="compact" />
-                      ))}
+                    <div className="bg-black rounded-lg overflow-hidden aspect-video mb-6">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src={youtubeSettings.url}
+                        title="Vidéo YouTube"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
                     </div>
                   </div>
+                )}
+              </div>
+            </aside>
 
-                  {/* YouTube Video */}
-                  {youtubeSettings?.is_active && youtubeSettings?.url && (
-                    <div className="mb-8 font-serif">
-                      <h3 className="text-sm font-bold uppercase tracking-wider border-b-2 border-primary pb-2 mb-4 font-serif">
-                        À regarder
-                      </h3>
-                      <div className="bg-black rounded-lg overflow-hidden aspect-video mb-6">
-                        <iframe
-                          width="100%"
-                          height="100%"
-                          src={youtubeSettings.url}
-                          title="Vidéo YouTube"
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        ></iframe>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </aside>
-            </div>
           </div>
-        </section>
-
-        {/* Category Sections */}
-        {await Promise.all(categories.map(async (category: any) => {
-          const categoryArticles = await getArticlesByCategory(category.slug)
-          if (categoryArticles.length === 0) return null
-          
-          return (
-            <CategorySection 
-              key={category.slug}
-              title={category.name}
-              slug={category.slug}
-              articles={categoryArticles}
-            />
-          )
-        }))}
+        </div>
       </main>
       
       <Footer />
@@ -141,8 +130,8 @@ function CategorySection({
   const secondaryArticles = articles.slice(1, 4)
 
   return (
-    <section className="py-8 border-t border-border font-serif">
-      <div className="mx-auto max-w-7xl px-4 font-serif">
+    <section className="py-8 border-t border-border font-serif first:border-t-0 first:pt-0">
+      <div className="font-serif">
         {/* Section Header */}
         <div className="flex items-center justify-between mb-6 font-serif">
           <h2 className="text-sm font-bold uppercase tracking-wider text-foreground border-b-2 border-primary pb-2 font-serif">
@@ -153,19 +142,19 @@ function CategorySection({
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 font-serif">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 font-serif">
           {/* Main Article */}
-          <div className="lg:col-span-6 font-serif">
+          <div className="font-serif">
             {mainArticle && (
               <ArticleCard article={mainArticle} showCategory={false} />
             )}
           </div>
 
           {/* Secondary Articles */}
-          <div className="lg:col-span-6 font-serif">
+          <div className="font-serif">
             <div className="grid gap-4 font-serif">
               {secondaryArticles.map((article) => (
-                <ArticleCard key={article.id} article={article} variant="horizontal" showCategory={false} />
+                <ArticleCard key={article.id} article={article} variant="horizontal" showCategory={false} excerptClamp={1} />
               ))}
             </div>
           </div>

@@ -82,11 +82,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       <main className="flex-1">
         <ViewTracker slug={article.slug} />
         <article>
-          {/* Article Header */}
-          <header className="border-b border-border font-serif">
-            <div className="mx-auto max-w-4xl px-4 py-8">
+          {/* Article Header & Image */}
+          <header className="font-serif pt-8">
+            <div className="mx-auto max-w-4xl px-4">
               {/* Breadcrumb */}
-              <nav className="text-sm text-muted-foreground mb-6 font-serif">
+              <nav className="text-sm text-muted-foreground mb-6 font-sans">
                 <Link href="/" className="hover:text-primary transition-colors">Accueil</Link>
                 <span className="mx-2">/</span>
                 <Link 
@@ -98,76 +98,81 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               </nav>
               
               {/* Category tag */}
-              <span className="inline-block text-sm font-semibold uppercase tracking-wider text-primary mb-3 font-serif">
+              <span className="inline-block text-sm font-bold uppercase tracking-wider text-primary mb-4 font-sans">
                 {article.category}
               </span>
               
-              <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-balance">
+              {/* Title */}
+              <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-balance mb-6 text-foreground">
                 {article.title}
               </h1>
               
-              <p className="text-lg text-muted-foreground mt-4 max-w-3xl leading-relaxed font-serif">
+              {/* Excerpt (Chapeau) */}
+              <p className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed font-serif font-medium">
                 {article.excerpt}
               </p>
               
-              {/* Meta info */}
-              <div className="flex flex-wrap items-center gap-4 mt-6 text-sm text-muted-foreground font-serif">
-                <time className="font-serif">{formatDate(article.date)}</time>
+              {/* Meta info & Share */}
+              <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-y border-border mb-8 font-sans">
+                <time className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                  Publié le {formatDate(article.date)}
+                </time>
+                
+                {/* Share buttons */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mr-2">Partager</span>
+                  <Link
+                    href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`}
+                    target="_blank"
+                    className="p-2 bg-muted/50 rounded-full hover:bg-muted hover:text-primary transition-colors"
+                    aria-label="Partager sur Twitter"
+                  >
+                    <Twitter className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
+                    target="_blank"
+                    className="p-2 bg-muted/50 rounded-full hover:bg-muted hover:text-primary transition-colors"
+                    aria-label="Partager sur LinkedIn"
+                  >
+                    <Linkedin className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
+                    target="_blank"
+                    className="p-2 bg-muted/50 rounded-full hover:bg-muted hover:text-primary transition-colors"
+                    aria-label="Partager sur Facebook"
+                  >
+                    <Facebook className="h-4 w-4" />
+                  </Link>
+                </div>
               </div>
               
-              {/* Share buttons */}
-              <div className="flex items-center gap-3 mt-6 font-serif">
-                <span className="text-sm text-muted-foreground font-serif">Partager:</span>
-                <Link
-                  href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`}
-                  target="_blank"
-                  className="p-2 hover:bg-muted transition-colors"
-                  aria-label="Partager sur Twitter"
-                >
-                  <Twitter className="h-4 w-4" />
-                </Link>
-                <Link
-                  href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
-                  target="_blank"
-                  className="p-2 hover:bg-muted transition-colors"
-                  aria-label="Partager sur LinkedIn"
-                >
-                  <Linkedin className="h-4 w-4" />
-                </Link>
-                <Link
-                  href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
-                  target="_blank"
-                  className="p-2 hover:bg-muted transition-colors"
-                  aria-label="Partager sur Facebook"
-                >
-                  <Facebook className="h-4 w-4" />
-                </Link>
-              </div>
+              {/* Cover Image */}
+              {article.image && (
+                <figure className="mt-8">
+                  <div className="relative aspect-[2/1] bg-muted rounded-xl overflow-hidden shadow-sm border border-border/50">
+                    <Image
+                      src={article.image}
+                      alt={article.title}
+                      fill
+                      className="object-cover"
+                      priority
+                      sizes="(max-width: 768px) 100vw, 800px"
+                    />
+                  </div>
+                  {images[0]?.caption && (
+                    <figcaption className="mt-3 text-sm text-muted-foreground italic border-l-2 border-primary pl-3 font-serif">
+                      {images[0].caption}
+                    </figcaption>
+                  )}
+                </figure>
+              )}
             </div>
           </header>
           
-          {/* Cover Image */}
-          {article.image && (
-            <figure className="relative">
-              <div className="relative aspect-[21/9] bg-muted">
-                <Image
-                  src={article.image}
-                  alt={article.title}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-              {images[0]?.caption && (
-                <figcaption className="mx-auto max-w-4xl px-4 py-2 text-sm text-muted-foreground italic font-serif">
-                  {images[0].caption}
-                </figcaption>
-              )}
-            </figure>
-          )}
-          
           {/* Article Content */}
-          <div className="mx-auto max-w-3xl px-4 py-12 font-serif">
+          <div className="mx-auto max-w-3xl px-4 pt-4 pb-12 font-serif">
             {isJsonBlocks ? (
               <div className="space-y-8 font-serif">
                 {blocks.map((block, idx) => (
