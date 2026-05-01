@@ -60,6 +60,9 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
     },
   },
+  verification: {
+    google: 'JAXNgZ2C3v5rrExwyBvpq94KkaRIF8ynlXbUyuJdAdA',
+  },
   icons: {
     icon: [
       {
