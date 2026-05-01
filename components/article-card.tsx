@@ -65,8 +65,8 @@ export function ArticleCard({
   // Horizontal variant - image on left, text on right
   if (variant === "horizontal") {
     return (
-      <article className="group">
-        <Link href={`/article/${article.slug}`} className="flex gap-4 items-stretch h-28 md:h-32">
+      <article className="group overflow-hidden">
+        <Link href={`/article/${article.slug}`} className="flex gap-4 items-stretch h-28 md:h-32 min-w-0 overflow-hidden">
           {showImage && article.image && (
             <div className="relative w-32 md:w-44 shrink-0 overflow-hidden bg-muted h-full rounded-xl">
               <Image
@@ -79,7 +79,7 @@ export function ArticleCard({
             </div>
           )}
           <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5 overflow-hidden">
-            <div>
+            <div className="min-w-0 w-full">
               {showCategory && (
                 <span className="inline-block text-[10px] md:text-xs font-semibold text-primary uppercase tracking-wider mb-1">
                   {article.category}
@@ -90,7 +90,7 @@ export function ArticleCard({
               </h3>
               {showExcerpt && (
                 <p className={`text-xs md:text-sm text-muted-foreground hidden md:block leading-snug ${
-                  excerptClamp === 1 ? 'line-clamp-1' :
+                  excerptClamp === 1 ? 'truncate' :
                   excerptClamp === 3 ? 'line-clamp-3' :
                   excerptClamp === 4 ? 'line-clamp-4' : 'line-clamp-2'
                 }`}>
