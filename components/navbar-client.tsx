@@ -33,10 +33,11 @@ export function NavbarClient({ categories, socialLinks = [] }: NavbarClientProps
     const handleScroll = () => {
       const scrollY = window.scrollY
       setIsScrolled(prev => {
-        // Hysteresis: hide at 120px, only show again when back near top (< 20px)
+        // Hysteresis: hide at 250px, only show again when back near top (< 40px)
         // This prevents the oscillation loop caused by header height changes
-        if (!prev && scrollY > 120) return true
-        if (prev && scrollY < 20) return false
+        // The gap between 250 and 40 must be larger than the shrinking element's height (150px)
+        if (!prev && scrollY > 250) return true
+        if (prev && scrollY < 40) return false
         return prev
       })
     }
