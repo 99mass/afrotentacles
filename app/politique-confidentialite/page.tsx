@@ -1,13 +1,17 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import Link from "next/link"
+import { getContactLinks } from "@/lib/actions/settings"
 
 export const metadata = {
   title: "Politique de confidentialité | AfroTentacles",
   description: "Politique de confidentialité d'AfroTentacles - Protection de vos données personnelles",
 }
 
-export default function PolitiqueConfidentialitePage() {
+export default async function PolitiqueConfidentialitePage() {
+  const contactLinks = await getContactLinks();
+  const contactEmail = contactLinks?.email_address || "contact@afrotentacles.org";
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -43,8 +47,8 @@ export default function PolitiqueConfidentialitePage() {
                   <p>Dakar</p>
                   <p>Sénégal</p>
                   <p className="mt-2">
-                    <a href="mailto:contact@afrotentacles.org" className="text-primary hover:underline">
-                      contact@afrotentacles.org
+                    <a href={`mailto:${contactEmail}`} className="text-primary hover:underline">
+                      {contactEmail}
                     </a>
                   </p>
                 </div>
@@ -132,8 +136,8 @@ export default function PolitiqueConfidentialitePage() {
                 </ul>
                 <p className="leading-relaxed mt-4">
                   Pour exercer ces droits, veuillez contacter :{" "}
-                  <a href="mailto:contact@afrotentacles.org" className="text-primary hover:underline">
-                    contact@afrotentacles.org
+                  <a href={`mailto:${contactEmail}`} className="text-primary hover:underline">
+                    {contactEmail}
                   </a>
                 </p>
               </section>
@@ -175,8 +179,8 @@ export default function PolitiqueConfidentialitePage() {
                 <h2 className="text-xl font-bold font-serif mb-3">Questions ou préoccupations ?</h2>
                 <p className="leading-relaxed">
                   Pour toute question concernant cette politique ou vos données personnelles, veuillez nous contacter à :{" "}
-                  <a href="mailto:contact@afrotentacles.org" className="text-primary hover:underline font-semibold">
-                    contact@afrotentacles.org
+                  <a href={`mailto:${contactEmail}`} className="text-primary hover:underline font-semibold">
+                    {contactEmail}
                   </a>
                 </p>
               </section>
