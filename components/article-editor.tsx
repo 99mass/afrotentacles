@@ -38,6 +38,7 @@ export function ArticleEditor({ article, mode, categories, authors = [] }: Artic
     image: article?.image || "",
     status: article?.status || "draft",
     is_featured: article?.is_featured || false,
+    seo_keywords: article?.seo_keywords || "",
   })
 
   // Parse existing content or media into blocks
@@ -293,6 +294,23 @@ export function ArticleEditor({ article, mode, categories, authors = [] }: Artic
                 />
                 <p className="text-xs text-muted-foreground">
                   Ce texte sera affiché dans les aperçus et les résultats de recherche.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="seo_keywords" className="text-sm font-medium">
+                  Mots-clés SEO
+                </Label>
+                <Input
+                  id="seo_keywords"
+                  name="seo_keywords"
+                  value={formData.seo_keywords}
+                  onChange={handleChange}
+                  placeholder="Ex: afrique, économie, géopolitique (séparés par des virgules)"
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ces mots-clés seront ajoutés aux métadonnées de la page pour le référencement.
                 </p>
               </div>
             </div>

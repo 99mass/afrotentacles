@@ -7,8 +7,24 @@ import type { Metadata } from "next"
 import { Mail, MessageCircle } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "À propos - AfroTentacles",
-  description: "AfroTentacles - Comprendre les équilibres africains. Blog analytique des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d'influence.",
+  title: 'À propos',
+  description: 'AfroTentacles - Comprendre les équilibres africains. Blog analytique des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d\'influence.',
+  alternates: {
+    canonical: 'https://afrotentacles.com/a-propos',
+  },
+  openGraph: {
+    type: 'website',
+    url: 'https://afrotentacles.com/a-propos',
+    title: 'À propos - AfroTentacles',
+    description: 'Comprendre les équilibres africains. Analyses approfondies de la géopolitique et de la géoéconomie africaine.',
+    images: [{ url: '/og-default.png', width: 1200, height: 630, alt: 'AfroTentacles' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'À propos - AfroTentacles',
+    description: 'Comprendre les équilibres africains. Analyses approfondies de la géopolitique et de la géoéconomie africaine.',
+    images: ['/og-default.png'],
+  },
 }
 
 export default async function AboutPage() {

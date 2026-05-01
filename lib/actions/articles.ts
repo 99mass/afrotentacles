@@ -18,6 +18,7 @@ function mapToArticle(row: any): Article {
     author: row.author,
     status: row.status,
     is_featured: row.is_featured,
+    seo_keywords: row.seo_keywords,
   }
 }
 
@@ -307,12 +308,12 @@ export async function getArticlesByCategory(categorySlug: string): Promise<Artic
   return (data || []).map(mapToArticle)
 }
 
-export async function getArticlesForSitemap(): Promise<{slug: string}[]> {
+export async function getArticlesForSitemap(): Promise<{slug: string, updated_at?: string, published_date?: string}[]> {
   const supabase = await createClient()
   
   const { data } = await supabase
     .from("articles")
-    .select("slug")
+    .select("slug, updated_at, published_date")
     .eq("status", "published")
     
   return data || []
@@ -465,6 +466,7 @@ export async function createArticle(data: any) {
     status: data.status,
     author: null,
     is_featured: data.is_featured,
+    seo_keywords: data.seo_keywords,
     published_date: new Date().toISOString()
   }).select().single()
   
@@ -502,6 +504,7 @@ export async function updateArticle(id: string, data: any) {
     status: data.status,
     author: null,
     is_featured: data.is_featured,
+    seo_keywords: data.seo_keywords,
     updated_at: new Date().toISOString()
   }).eq("id", id)
   

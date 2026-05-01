@@ -25,6 +25,7 @@ export interface Article {
   media?: MediaItem[]
   status: "published" | "draft"
   is_featured?: boolean
+  seo_keywords?: string
 }
 
 

@@ -4,8 +4,24 @@ import Link from "next/link"
 import { getContactLinks } from "@/lib/actions/settings"
 
 export const metadata = {
-  title: "Politique de confidentialité | AfroTentacles",
+  title: 'Politique de confidentialité',
   description: "Politique de confidentialité d'AfroTentacles - Protection de vos données personnelles",
+  alternates: {
+    canonical: 'https://afrotentacles.com/politique-confidentialite',
+  },
+  openGraph: {
+    type: 'website',
+    url: 'https://afrotentacles.com/politique-confidentialite',
+    title: 'Politique de confidentialité - AfroTentacles',
+    description: "Protection de vos données personnelles sur AfroTentacles.",
+    images: [{ url: '/og-default.png', width: 1200, height: 630, alt: 'AfroTentacles' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Politique de confidentialité - AfroTentacles',
+    description: "Protection de vos données personnelles sur AfroTentacles.",
+    images: ['/og-default.png'],
+  },
 }
 
 export default async function PolitiqueConfidentialitePage() {

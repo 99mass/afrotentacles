@@ -5,6 +5,7 @@ import { getArticlesByCategory, getCategoryBySlug, getCategories, getLatestArtic
 import { createStaticClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Script from "next/script"
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>
@@ -28,9 +29,28 @@ export async function generateMetadata({ params }: CategoryPageProps) {
     return { title: "Catégorie non trouvée" }
   }
 
+  const BASE_URL = 'https://afrotentacles.com'
+  const categoryUrl = `${BASE_URL}/categorie/${category.slug}`
+
   return {
-    title: `${category.name} - AfroTentacles`,
-    description: category.description,
+    title: category.name,
+    description: category.description || `Articles AfroTentacles sur la catégorie ${category.name}`,
+    alternates: {
+      canonical: categoryUrl,
+    },
+    openGraph: {
+      type: 'website',
+      url: categoryUrl,
+      title: `${category.name} - AfroTentacles`,
+      description: category.description || `Articles AfroTentacles sur la catégorie ${category.name}`,
+      images: [{ url: '/og-default.png', width: 1200, height: 630, alt: category.name }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${category.name} - AfroTentacles`,
+      description: category.description || `Articles AfroTentacles sur la catégorie ${category.name}`,
+      images: ['/og-default.png'],
+    },
   }
 }
 
@@ -48,11 +68,35 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     getCategories()
   ])
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Accueil",
+        "item": "https://afrotentacles.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": category.name,
+        "item": `https://afrotentacles.com/categorie/${category.slug}`
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
       <main className="flex-1">
+        <Script
+          id="breadcrumb-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
         {/* Category Header */}
         <section className="border-b border-border bg-muted/30 font-serif">
           <div className="mx-auto max-w-7xl px-4 py-8 font-serif">

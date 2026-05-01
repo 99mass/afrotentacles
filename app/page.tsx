@@ -5,6 +5,32 @@ import { getLatestArticles, getFeaturedArticles, getArticlesByCategory, getPopul
 import { getYouTubeSettings } from "@/lib/actions/settings"
 import { FeaturedCarousel } from "@/components/featured-carousel"
 import Link from "next/link"
+import type { Metadata } from "next"
+
+const BASE_URL = 'https://afrotentacles.com'
+
+export const metadata: Metadata = {
+  title: {
+    absolute: 'AfroTentacles - Géoéconomie et Géopolitique Africaine',
+  },
+  description: 'Décryptez les dynamiques africaines : géopolitique, géoéconomie, ressources et réseaux d\'influence. Analyses approfondies et accessibles sur l\'Afrique contemporaine.',
+  alternates: {
+    canonical: BASE_URL,
+  },
+  openGraph: {
+    type: 'website',
+    url: BASE_URL,
+    title: 'AfroTentacles - Géoéconomie et Géopolitique Africaine',
+    description: 'Décryptez les dynamiques africaines : géopolitique, géoéconomie, ressources et réseaux d\'influence.',
+    images: [{ url: '/og-default.png', width: 1200, height: 630, alt: 'AfroTentacles' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AfroTentacles - Géoéconomie et Géopolitique Africaine',
+    description: 'Décryptez les dynamiques africaines : géopolitique, géoéconomie, ressources et réseaux d\'influence.',
+    images: ['/og-default.png'],
+  },
+}
 
 export default async function HomePage() {
   // Fetch initial data simultaneously
@@ -26,9 +52,9 @@ export default async function HomePage() {
         {/* Hero Section - À la Une */}
         <section className="border-b border-border font-serif">
           <div className="mx-auto max-w-7xl px-4 py-8">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-primary border-b-2 border-primary pb-2 mb-6 inline-block font-serif">
+            <h1 className="text-sm font-bold uppercase tracking-wider text-primary border-b-2 border-primary pb-2 mb-6 inline-block font-serif">
               À la Une
-            </h2>
+            </h1>
             
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 font-serif">
               {/* Featured Carousel */}
@@ -98,7 +124,7 @@ export default async function HomePage() {
                         height="100%"
                         src={youtubeSettings.url}
                         title="Vidéo YouTube"
-                        frameBorder="0"
+                        style={{ border: 'none' }}
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       ></iframe>
