@@ -34,13 +34,32 @@ export async function generateMetadata({ params }: ArticlePageProps) {
     return { title: "Article non trouvé" }
   }
 
+  const BASE_URL = 'https://afrotentacles.com'
+  const articleUrl = `${BASE_URL}/article/${article.slug}`
+
   return {
-    title: `${article.title} - AfroTentacles`,
+    title: article.title,
     description: article.excerpt,
+    alternates: {
+      canonical: articleUrl,
+    },
+    authors: article.author ? [{ name: article.author }] : undefined,
     openGraph: {
+      type: 'article',
+      url: articleUrl,
       title: article.title,
       description: article.excerpt,
-      images: [article.image],
+      publishedTime: article.date,
+      section: article.category,
+      images: article.image
+        ? [{ url: article.image, width: 1200, height: 630, alt: article.title }]
+        : [{ url: '/og-default.png', width: 1200, height: 630, alt: 'AfroTentacles' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.excerpt,
+      images: article.image ? [article.image] : ['/og-default.png'],
     },
   }
 }

@@ -28,9 +28,28 @@ export async function generateMetadata({ params }: CategoryPageProps) {
     return { title: "Catégorie non trouvée" }
   }
 
+  const BASE_URL = 'https://afrotentacles.com'
+  const categoryUrl = `${BASE_URL}/categorie/${category.slug}`
+
   return {
-    title: `${category.name} - AfroTentacles`,
-    description: category.description,
+    title: category.name,
+    description: category.description || `Articles AfroTentacles sur la catégorie ${category.name}`,
+    alternates: {
+      canonical: categoryUrl,
+    },
+    openGraph: {
+      type: 'website',
+      url: categoryUrl,
+      title: `${category.name} - AfroTentacles`,
+      description: category.description || `Articles AfroTentacles sur la catégorie ${category.name}`,
+      images: [{ url: '/og-default.png', width: 1200, height: 630, alt: category.name }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${category.name} - AfroTentacles`,
+      description: category.description || `Articles AfroTentacles sur la catégorie ${category.name}`,
+      images: ['/og-default.png'],
+    },
   }
 }
 
