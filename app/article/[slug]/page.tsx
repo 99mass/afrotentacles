@@ -9,6 +9,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Twitter, Linkedin, Facebook, FileText, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Script from "next/script"
 import "@/styles/article-content.css"
 
 function getEmbedUrl(url: string) {
@@ -50,6 +51,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
       title: article.title,
       description: article.excerpt,
       publishedTime: article.date,
+      modifiedTime: article.date,
       section: article.category,
       images: article.image
         ? [{ url: article.image, width: 1200, height: 630, alt: article.title }]
@@ -99,11 +101,72 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const wordCount = textContent.split(/\s+/).length;
   const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://afrotentacles.com/article/${article.slug}`
+    },
+    "headline": article.title,
+    "description": article.excerpt,
+    "image": article.image ? [article.image] : ['https://afrotentacles.com/og-default.png'],
+    "datePublished": new Date(article.date).toISOString(),
+    "dateModified": new Date(article.date).toISOString(),
+    "author": {
+      "@type": "Person",
+      "name": article.author || "AfroTentacles"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "AfroTentacles",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://afrotentacles.com/logo.jpg"
+      }
+    }
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Accueil",
+        "item": "https://afrotentacles.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": article.category,
+        "item": `https://afrotentacles.com/categorie/${article.categorySlug}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": article.title,
+        "item": `https://afrotentacles.com/article/${article.slug}`
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
       <main className="flex-1">
+        <Script
+          id="article-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <Script
+          id="breadcrumb-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
         <ViewTracker slug={article.slug} />
         <article>
           {/* Full-bleed Hero Image with Solid Color & Faded Right Image */}
@@ -188,6 +251,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   <Link
                     href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                     aria-label="Partager sur Twitter"
                   >
@@ -196,6 +260,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   <Link
                     href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                     aria-label="Partager sur LinkedIn"
                   >
@@ -204,6 +269,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   <Link
                     href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                     aria-label="Partager sur Facebook"
                   >
@@ -218,9 +284,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 {/* Mobile Share Bar */}
                 <div className="flex lg:hidden items-center gap-4 mb-8 pb-4 border-b border-border">
                   <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Partager</span>
-                  <Link href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`} target="_blank" className="p-2 bg-muted rounded-full text-foreground"><Twitter className="h-4 w-4" /></Link>
-                  <Link href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" className="p-2 bg-muted rounded-full text-foreground"><Linkedin className="h-4 w-4" /></Link>
-                  <Link href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" className="p-2 bg-muted rounded-full text-foreground"><Facebook className="h-4 w-4" /></Link>
+                  <Link href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-muted rounded-full text-foreground"><Twitter className="h-4 w-4" /></Link>
+                  <Link href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-muted rounded-full text-foreground"><Linkedin className="h-4 w-4" /></Link>
+                  <Link href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" rel="noopener noreferrer" className="p-2 bg-muted rounded-full text-foreground"><Facebook className="h-4 w-4" /></Link>
                 </div>
 
                 {/* Excerpt (Chapeau) */}

@@ -82,6 +82,28 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={`${playfair.variable} ${inter.variable} bg-background`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "AfroTentacles",
+              "url": BASE_URL,
+              "description": "Blog analytique des dynamiques africaines à travers une approche croisée entre économie, géopolitique et réseaux d'influence.",
+              "publisher": {
+                "@type": "Organization",
+                "name": "AfroTentacles",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": `${BASE_URL}/logo.jpg`
+                }
+              }
+            })
+          }}
+        />
+      </head>
       <body className="font-serif antialiased">
         {children}
         <ScrollToTopButton />

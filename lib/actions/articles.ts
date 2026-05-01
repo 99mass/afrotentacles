@@ -307,12 +307,12 @@ export async function getArticlesByCategory(categorySlug: string): Promise<Artic
   return (data || []).map(mapToArticle)
 }
 
-export async function getArticlesForSitemap(): Promise<{slug: string}[]> {
+export async function getArticlesForSitemap(): Promise<{slug: string, updated_at?: string, published_date?: string}[]> {
   const supabase = await createClient()
   
   const { data } = await supabase
     .from("articles")
-    .select("slug")
+    .select("slug, updated_at, published_date")
     .eq("status", "published")
     
   return data || []

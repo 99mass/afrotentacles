@@ -32,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const articles = await getArticlesForSitemap()
     articlePages = articles.map((article) => ({
       url: `${BASE_URL}/article/${article.slug}`,
-      lastModified: new Date(),
+      lastModified: new Date(article.updated_at || article.published_date || new Date()),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     }))

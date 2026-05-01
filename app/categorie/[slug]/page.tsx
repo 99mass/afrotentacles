@@ -5,6 +5,7 @@ import { getArticlesByCategory, getCategoryBySlug, getCategories, getLatestArtic
 import { createStaticClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Script from "next/script"
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>
@@ -67,11 +68,35 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     getCategories()
   ])
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Accueil",
+        "item": "https://afrotentacles.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": category.name,
+        "item": `https://afrotentacles.com/categorie/${category.slug}`
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
       <main className="flex-1">
+        <Script
+          id="breadcrumb-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
         {/* Category Header */}
         <section className="border-b border-border bg-muted/30 font-serif">
           <div className="mx-auto max-w-7xl px-4 py-8 font-serif">
