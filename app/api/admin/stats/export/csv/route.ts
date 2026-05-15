@@ -9,6 +9,7 @@ export async function GET() {
   rows.push(`Clé,Valeur`)
   rows.push(`Vues totales,${stats.totalViews}`)
   rows.push(`Vues mois dernier,${stats.totalViewsLastMonth}`)
+  rows.push(`Vues mois actuel,${stats.totalViewsCurrentMonth}`)
   rows.push(`Articles totaux,${stats.totalArticles}`)
   rows.push(`Articles publiés,${stats.publishedArticles}`)
   rows.push(`Brouillons,${stats.draftArticles}`)
@@ -16,9 +17,9 @@ export async function GET() {
 
   // Top articles
   rows.push(`Top Articles`)
-  rows.push(`Rang,Titre,Catégorie,Total,7 jours,Aujourd'hui`)
+  rows.push(`Rang,Titre,Catégorie,Total,30 jours,Aujourd'hui`)
   stats.topArticles.forEach((a, i) => {
-    rows.push(`${i + 1},"${a.title.replace(/"/g, '""')}",${a.category},${a.views},${a.viewsWeek},${a.viewsToday}`)
+    rows.push(`${i + 1},"${a.title.replace(/"/g, '""')}",${a.category},${a.views},${a.viewsMonth},${a.viewsToday}`)
   })
   rows.push("")
 
