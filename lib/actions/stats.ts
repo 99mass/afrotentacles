@@ -10,6 +10,7 @@ export interface ArticleStat {
   views: number
   viewsToday: number
   viewsWeek: number
+  viewsMonth: number
 }
 
 export interface CategoryStat {
@@ -26,6 +27,7 @@ export interface DailyStat {
 export interface SiteStats {
   totalViews: number
   totalViewsLastMonth: number
+  totalViewsCurrentMonth: number
   totalArticles: number
   publishedArticles: number
   draftArticles: number
@@ -68,6 +70,16 @@ export async function getSiteStats(): Promise<SiteStats> {
     .gte("viewed_at", lastMonthStart.toISOString())
     .lte("viewed_at", lastMonthEnd.toISOString())
 
+  // Total views current month
+  const currentMonthStart = new Date()
+  currentMonthStart.setDate(1)
+  currentMonthStart.setHours(0, 0, 0, 0)
+
+  const { count: totalViewsCurrentMonth } = await supabase
+    .from("article_views")
+    .select("*", { count: "exact", head: true })
+    .gte("viewed_at", currentMonthStart.toISOString())
+
   // 3. Article counts
   const { count: totalArticles } = await supabase
     .from("articles")
@@ -85,15 +97,29 @@ export async function getSiteStats(): Promise<SiteStats> {
     .order("view_count", { ascending: false })
     .limit(10)
 
-  const topArticles: ArticleStat[] = (statsRows || []).map((r) => ({
-    id: r.id,
-    title: r.title,
-    category: r.category,
-    categorySlug: r.category_slug,
-    views: r.view_count || 0,
-    viewsToday: r.views_today || 0,
-    viewsWeek: r.views_week || 0,
-  }))
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
+  thirtyDaysAgo.setHours(0, 0, 0, 0)
+
+  const topArticles: ArticleStat[] = []
+  for (const r of (statsRows || [])) {
+    const { count } = await supabase
+      .from("article_views")
+      .select("*", { count: "exact", head: true })
+      .eq("article_id", r.id)
+      .gte("viewed_at", thirtyDaysAgo.toISOString())
+
+    topArticles.push({
+      id: r.id,
+      title: r.title,
+      category: r.category,
+      categorySlug: r.category_slug,
+      views: r.view_count || 0,
+      viewsToday: r.views_today || 0,
+      viewsWeek: r.views_week || 0,
+      viewsMonth: count || 0,
+    })
+  }
 
   // 5. Views by category
   const { data: categories } = await supabase
@@ -125,19 +151,15 @@ export async function getSiteStats(): Promise<SiteStats> {
   // Sort by views descending
   categoryStats.sort((a, b) => b.views - a.views)
 
-  // 6. Views per day for the last 7 days
-  const sevenDaysAgo = new Date()
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6)
-  sevenDaysAgo.setHours(0, 0, 0, 0)
-
+  // 6. Views per day for the last 30 days
   const { data: recentViews } = await supabase
     .from("article_views")
     .select("viewed_at")
-    .gte("viewed_at", sevenDaysAgo.toISOString())
+    .gte("viewed_at", thirtyDaysAgo.toISOString())
 
-  // Build daily buckets for last 7 days
+  // Build daily buckets for last 30 days
   const dailyMap: Record<string, number> = {}
-  for (let i = 6; i >= 0; i--) {
+  for (let i = 29; i >= 0; i--) {
     const d = new Date()
     d.setDate(d.getDate() - i)
     const key = d.toISOString().slice(0, 10)
@@ -151,12 +173,14 @@ export async function getSiteStats(): Promise<SiteStats> {
 
   const dailyStats: DailyStat[] = Object.entries(dailyMap).map(([dateStr, views]) => {
     const d = new Date(dateStr)
-    return { day: DAY_LABELS[d.getDay()] || dateStr, views }
+    const formattedDate = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`
+    return { day: formattedDate, views }
   })
 
   return {
     totalViews: totalViews || 0,
     totalViewsLastMonth: totalViewsLastMonth || 0,
+    totalViewsCurrentMonth: totalViewsCurrentMonth || 0,
     totalArticles: totalArticles || 0,
     publishedArticles: publishedArticles || 0,
     draftArticles: (totalArticles || 0) - (publishedArticles || 0),

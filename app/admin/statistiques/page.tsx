@@ -1,5 +1,6 @@
 import { getSiteStats } from "@/lib/actions/stats"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import {
   Eye,
   TrendingUp,
@@ -46,6 +47,14 @@ export default async function StatistiquesPage() {
         <p className="text-muted-foreground mt-1">
           Données réelles — performances de votre contenu
         </p>
+        <div className="mt-4 flex gap-2">
+          <Button asChild size="sm">
+            <a href="/api/admin/stats/export/csv">Exporter CSV</a>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <a href="/api/admin/stats/export/pdf" target="_blank" rel="noreferrer">Exporter PDF</a>
+          </Button>
+        </div>
       </div>
 
       {/* Overview Stats */}
@@ -128,7 +137,7 @@ export default async function StatistiquesPage() {
         {/* Weekly Views Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-serif">Vues — 7 derniers jours</CardTitle>
+            <CardTitle className="text-lg font-serif">Vues — 30 derniers jours</CardTitle>
             <CardDescription>Évolution quotidienne des visites</CardDescription>
           </CardHeader>
           <CardContent>
@@ -137,21 +146,26 @@ export default async function StatistiquesPage() {
                 Aucune vue enregistrée sur cette période
               </div>
             ) : (
-              <div className="flex items-end justify-between gap-2 h-48">
-                {dailyStats.map((day) => (
-                  <div key={day.day} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="w-full flex flex-col items-center justify-end h-40">
-                      <span className="text-xs font-medium mb-1">
-                        {day.views > 0 ? day.views : ""}
+              <div className="w-full overflow-x-auto pb-2">
+                <div className="flex items-end justify-between gap-[2px] sm:gap-1 h-56 min-w-[700px] px-2 pt-4">
+                  {dailyStats.map((day) => (
+                    <div key={day.day} className="flex-1 flex flex-col items-center gap-1">
+                      <div className="w-full flex flex-col items-center justify-end h-40 group relative">
+                        <span className="text-[10px] font-medium mb-1 opacity-0 group-hover:opacity-100 lg:opacity-100 transition-opacity">
+                          {day.views > 0 ? day.views : ""}
+                        </span>
+                        <div
+                          className="w-full bg-primary/80 hover:bg-primary rounded-t transition-all"
+                          style={{ height: `${(day.views / maxDayViews) * 100}%`, minHeight: day.views > 0 ? "4px" : "0px" }}
+                          title={`${day.day}: ${day.views} vues`}
+                        />
+                      </div>
+                      <span className="text-[10px] text-muted-foreground mt-2 w-full text-center">
+                        {day.day}
                       </span>
-                      <div
-                        className="w-full bg-primary rounded-t transition-all"
-                        style={{ height: `${(day.views / maxDayViews) * 100}%`, minHeight: day.views > 0 ? "4px" : "0px" }}
-                      />
                     </div>
-                    <span className="text-xs text-muted-foreground">{day.day}</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>
@@ -223,7 +237,7 @@ export default async function StatistiquesPage() {
                       Total
                     </th>
                     <th className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden sm:table-cell">
-                      7 jours
+                      30 jours
                     </th>
                     <th className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden lg:table-cell">
                       Aujourd&apos;hui
@@ -256,7 +270,7 @@ export default async function StatistiquesPage() {
                       <td className="py-3 px-4 text-right hidden sm:table-cell">
                         <span className="inline-flex items-center gap-1 text-blue-600 text-sm">
                           <ArrowUpRight className="h-3 w-3" />
-                          {formatNumber(article.viewsWeek)}
+                          {formatNumber(article.viewsMonth)}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right hidden lg:table-cell">
