@@ -26,6 +26,7 @@ export interface Article {
   status: "published" | "draft"
   is_featured?: boolean
   seo_keywords?: string
+  published_date?: string
 }
 
 
