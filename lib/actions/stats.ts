@@ -30,6 +30,7 @@ export interface SiteStats {
   totalViewsCurrentMonth: number
   totalArticles: number
   publishedArticles: number
+  scheduledArticles: number
   draftArticles: number
   topArticles: ArticleStat[]
   categoryStats: CategoryStat[]
@@ -85,10 +86,24 @@ export async function getSiteStats(): Promise<SiteStats> {
     .from("articles")
     .select("*", { count: "exact", head: true })
 
+  const nowStr = new Date().toISOString()
+
   const { count: publishedArticles } = await supabase
     .from("articles")
     .select("*", { count: "exact", head: true })
     .eq("status", "published")
+    .lte("published_date", nowStr)
+
+  const { count: scheduledArticles } = await supabase
+    .from("articles")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "published")
+    .gt("published_date", nowStr)
+
+  const { count: draftArticles } = await supabase
+    .from("articles")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "draft")
 
   // 4. Top articles from article_stats view
   const { data: statsRows } = await supabase
@@ -183,7 +198,8 @@ export async function getSiteStats(): Promise<SiteStats> {
     totalViewsCurrentMonth: totalViewsCurrentMonth || 0,
     totalArticles: totalArticles || 0,
     publishedArticles: publishedArticles || 0,
-    draftArticles: (totalArticles || 0) - (publishedArticles || 0),
+    scheduledArticles: scheduledArticles || 0,
+    draftArticles: draftArticles || 0,
     topArticles,
     categoryStats,
     dailyStats,

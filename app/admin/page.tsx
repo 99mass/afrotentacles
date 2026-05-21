@@ -21,7 +21,9 @@ export default async function AdminDashboard() {
   const articles = await getAllArticlesAdmin()
   const categories = await getCategories()
 
-  const publishedArticles = articles.filter((a) => a.status === "published")
+  const now = new Date()
+  const publishedArticles = articles.filter((a) => a.status === "published" && (!a.published_date || new Date(a.published_date) <= now))
+  const scheduledArticles = articles.filter((a) => a.status === "published" && a.published_date && new Date(a.published_date) > now)
   const draftArticles = articles.filter((a) => a.status === "draft")
   const recentArticles = [...articles].slice(0, 5) // already sorted by created_at
 
@@ -55,7 +57,7 @@ export default async function AdminDashboard() {
           <CardContent>
             <div className="text-3xl font-bold">{articles.length}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {publishedArticles.length} publiés, {draftArticles.length} brouillons
+              {publishedArticles.length} publiés, {scheduledArticles.length} planifiés, {draftArticles.length} brouillons
             </p>
           </CardContent>
         </Card>
@@ -147,11 +149,17 @@ export default async function AdminDashboard() {
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full ${
                           article.status === "published"
-                            ? "bg-green-100 text-green-700"
+                            ? article.published_date && new Date(article.published_date) > new Date()
+                              ? "bg-purple-100 text-purple-700"
+                              : "bg-green-100 text-green-700"
                             : "bg-yellow-100 text-yellow-700"
                         }`}
                       >
-                        {article.status === "published" ? "Publié" : "Brouillon"}
+                        {article.status === "published"
+                          ? article.published_date && new Date(article.published_date) > new Date()
+                            ? "Planifié"
+                            : "Publié"
+                          : "Brouillon"}
                       </span>
                     </div>
                   </div>

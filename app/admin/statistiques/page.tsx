@@ -25,6 +25,7 @@ export default async function StatistiquesPage() {
     totalViewsLastMonth,
     totalArticles,
     publishedArticles,
+    scheduledArticles,
     draftArticles,
     topArticles,
     categoryStats,
@@ -113,7 +114,7 @@ export default async function StatistiquesPage() {
           <CardContent>
             <div className="text-3xl font-bold">{publishedArticles}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              sur {totalArticles} articles
+              actifs ({scheduledArticles} planifiés)
             </p>
           </CardContent>
         </Card>

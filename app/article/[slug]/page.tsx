@@ -76,7 +76,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params
   const article = await getArticleBySlug(slug)
 
-  if (!article || article.status !== "published") {
+  if (!article || article.status !== "published" || (article.published_date && new Date(article.published_date) > new Date())) {
     notFound()
   }
 

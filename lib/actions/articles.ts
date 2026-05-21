@@ -19,16 +19,19 @@ function mapToArticle(row: any): Article {
     status: row.status,
     is_featured: row.is_featured,
     seo_keywords: row.seo_keywords,
+    published_date: row.published_date,
   }
 }
 
 export async function getFeaturedArticle(): Promise<Article | null> {
   const supabase = await createClient()
+  const nowStr = new Date().toISOString()
   const { data, error } = await supabase
     .from("articles")
     .select("*")
     .eq("status", "published")
     .eq("is_featured", true)
+    .lte("published_date", nowStr)
     .order("published_date", { ascending: false })
     .limit(1)
     .single()
@@ -39,6 +42,7 @@ export async function getFeaturedArticle(): Promise<Article | null> {
       .from("articles")
       .select("*")
       .eq("status", "published")
+      .lte("published_date", nowStr)
       .order("published_date", { ascending: false })
       .limit(1)
       .single()
@@ -52,11 +56,13 @@ export async function getFeaturedArticle(): Promise<Article | null> {
 
 export async function getFeaturedArticles(): Promise<Article[]> {
   const supabase = await createClient()
+  const nowStr = new Date().toISOString()
   const { data } = await supabase
     .from("articles")
     .select("*")
     .eq("status", "published")
     .eq("is_featured", true)
+    .lte("published_date", nowStr)
     .order("published_date", { ascending: false })
   
   // If no featured articles, return the 5 latest articles as fallback
@@ -65,6 +71,7 @@ export async function getFeaturedArticles(): Promise<Article[]> {
       .from("articles")
       .select("*")
       .eq("status", "published")
+      .lte("published_date", nowStr)
       .order("published_date", { ascending: false })
       .limit(5)
     
@@ -76,11 +83,13 @@ export async function getFeaturedArticles(): Promise<Article[]> {
 
 export async function getLatestArticles(page = 1, limit = 10, excludeId?: string): Promise<Article[]> {
   const supabase = await createClient()
+  const nowStr = new Date().toISOString()
   
   let query = supabase
     .from("articles")
     .select("*")
     .eq("status", "published")
+    .lte("published_date", nowStr)
     .order("published_date", { ascending: false })
     
   if (excludeId) {
@@ -97,11 +106,13 @@ export async function getLatestArticles(page = 1, limit = 10, excludeId?: string
 
 export async function searchArticles(query: string): Promise<Article[]> {
   const supabase = await createClient()
+  const nowStr = new Date().toISOString()
   
   const { data } = await supabase
     .from("articles")
     .select("*")
     .eq("status", "published")
+    .lte("published_date", nowStr)
     .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`)
     .order("published_date", { ascending: false })
     .limit(5)
@@ -122,12 +133,14 @@ export async function getPopularArticles(limit = 5): Promise<Article[]> {
   if (!stats || stats.length === 0) return getLatestArticles(1, limit)
   
   const ids = stats.map(s => s.id)
+  const nowStr = new Date().toISOString()
   
   const { data: articles } = await supabase
     .from("articles")
     .select("*")
     .in("id", ids)
     .eq("status", "published")
+    .lte("published_date", nowStr)
     
   const sortedArticles = (articles || []).sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
   return sortedArticles.map(mapToArticle)
@@ -178,11 +191,13 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 
 export async function getRelatedArticles(article: Article, limit = 3): Promise<Article[]> {
   const supabase = await createClient()
+  const nowStr = new Date().toISOString()
   
   const { data } = await supabase
     .from("articles")
     .select("*, categories(name)")
     .eq("status", "published")
+    .lte("published_date", nowStr)
     .eq("category_slug", article.categorySlug)
     .neq("id", article.id)
     .order("published_date", { ascending: false })
@@ -299,10 +314,12 @@ export async function deleteCategory(id: string) {
 
 export async function getArticlesByCategory(categorySlug: string): Promise<Article[]> {
   const supabase = await createClient()
+  const nowStr = new Date().toISOString()
   const { data } = await supabase
     .from("articles")
     .select("*, categories(name)")
     .eq("status", "published")
+    .lte("published_date", nowStr)
     .eq("category_slug", categorySlug)
     .order("published_date", { ascending: false })
   return (data || []).map(mapToArticle)
@@ -310,11 +327,13 @@ export async function getArticlesByCategory(categorySlug: string): Promise<Artic
 
 export async function getArticlesForSitemap(): Promise<{slug: string, updated_at?: string, published_date?: string}[]> {
   const supabase = await createClient()
+  const nowStr = new Date().toISOString()
   
   const { data } = await supabase
     .from("articles")
     .select("slug, updated_at, published_date")
     .eq("status", "published")
+    .lte("published_date", nowStr)
     
   return data || []
 }
@@ -467,7 +486,7 @@ export async function createArticle(data: any) {
     author: null,
     is_featured: data.is_featured,
     seo_keywords: data.seo_keywords,
-    published_date: new Date().toISOString()
+    published_date: data.published_date || new Date().toISOString()
   }).select().single()
   
   if (error) throw new Error(error.message)
@@ -505,6 +524,7 @@ export async function updateArticle(id: string, data: any) {
     author: null,
     is_featured: data.is_featured,
     seo_keywords: data.seo_keywords,
+    published_date: data.published_date || new Date().toISOString(),
     updated_at: new Date().toISOString()
   }).eq("id", id)
   

@@ -17,6 +17,26 @@ import NextImage from "next/image"
 import { createArticle, updateArticle } from "@/lib/actions/articles"
 import { toast } from "sonner"
 
+// Converts UTC ISO string from database to local datetime-local string (YYYY-MM-DDTHH:MM)
+function toLocalDateTimeString(utcString?: string): string {
+  if (!utcString) return ""
+  const date = new Date(utcString)
+  if (isNaN(date.getTime())) return ""
+  
+  // Offset to local time
+  const tzOffset = date.getTimezoneOffset() * 60000; // in milliseconds
+  const localISOTime = new Date(date.getTime() - tzOffset).toISOString();
+  return localISOTime.slice(0, 16); // YYYY-MM-DDTHH:MM
+}
+
+// Converts local datetime-local string (YYYY-MM-DDTHH:MM) to UTC ISO string
+function toUTCISOString(localString: string): string {
+  if (!localString) return new Date().toISOString()
+  const date = new Date(localString)
+  if (isNaN(date.getTime())) return new Date().toISOString()
+  return date.toISOString()
+}
+
 interface ArticleEditorProps {
   article?: Article
   mode: "create" | "edit"
@@ -39,6 +59,7 @@ export function ArticleEditor({ article, mode, categories, authors = [] }: Artic
     status: article?.status || "draft",
     is_featured: article?.is_featured || false,
     seo_keywords: article?.seo_keywords || "",
+    published_date: toLocalDateTimeString(article?.published_date || article?.date || new Date().toISOString()),
   })
 
   // Parse existing content or media into blocks
@@ -186,6 +207,7 @@ export function ArticleEditor({ article, mode, categories, authors = [] }: Artic
 
       const dataToSave = { 
         ...formData, 
+        published_date: toUTCISOString(formData.published_date),
         content: JSON.stringify(blocks), 
         media: mediaItems 
       }
@@ -517,6 +539,23 @@ export function ArticleEditor({ article, mode, categories, authors = [] }: Artic
                   <option value="draft">Brouillon</option>
                   <option value="published">Publié</option>
                 </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="published_date" className="text-sm font-medium">
+                  Date de publication
+                </Label>
+                <Input
+                  id="published_date"
+                  name="published_date"
+                  type="datetime-local"
+                  value={formData.published_date}
+                  onChange={handleChange}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Programmez la date de publication. L&apos;article ne sera visible aux visiteurs qu&apos;à partir de cette date.
+                </p>
               </div>
 
               <div className="flex items-center space-x-2 pt-2">

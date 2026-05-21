@@ -61,7 +61,13 @@ export function ArticlesListClient({ initialArticles, categories }: { initialArt
       return false
     }
     if (filterCategory && article.categorySlug !== filterCategory) return false
-    if (filterStatus && article.status !== filterStatus) return false
+    if (filterStatus) {
+      const now = new Date()
+      const isScheduled = article.status === "published" && article.published_date && new Date(article.published_date) > now
+      if (filterStatus === "published" && (article.status !== "published" || isScheduled)) return false
+      if (filterStatus === "scheduled" && !isScheduled) return false
+      if (filterStatus === "draft" && article.status !== "draft") return false
+    }
     if (filterFeatured === "true" && !article.is_featured) return false
     if (filterFeatured === "false" && article.is_featured) return false
     return true
@@ -242,6 +248,7 @@ export function ArticlesListClient({ initialArticles, categories }: { initialArt
             >
               <option value="">Tous les statuts</option>
               <option value="published">Publié</option>
+              <option value="scheduled">Planifié</option>
               <option value="draft">Brouillon</option>
             </select>
             <select
@@ -401,11 +408,17 @@ export function ArticlesListClient({ initialArticles, categories }: { initialArt
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full ${
                           article.status === "published"
-                            ? "bg-green-100 text-green-700"
+                            ? article.published_date && new Date(article.published_date) > new Date()
+                              ? "bg-purple-100 text-purple-700"
+                              : "bg-green-100 text-green-700"
                             : "bg-yellow-100 text-yellow-700"
                         }`}
                       >
-                        {article.status === "published" ? "Publié" : "Brouillon"}
+                        {article.status === "published"
+                          ? article.published_date && new Date(article.published_date) > new Date()
+                            ? "Planifié"
+                            : "Publié"
+                          : "Brouillon"}
                       </span>
                       {article.is_featured && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
