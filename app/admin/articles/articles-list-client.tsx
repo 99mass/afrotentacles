@@ -22,6 +22,7 @@ import {
   Zap,
   Check,
   X as XIcon,
+  Copy,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -434,71 +435,97 @@ export function ArticlesListClient({ initialArticles, categories }: { initialArt
                     </p>
                   </div>
 
-                  {/* Actions dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="flex-shrink-0" disabled={isDeleting === article.id}>
-                        {isDeleting === article.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <MoreVertical className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link href={`/article/${article.slug}`} target="_blank">
-                          <Eye className="h-4 w-4 mr-2" />
-                          Voir
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href={`/admin/editer/${article.id}`}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Modifier
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleToggleFeatured(article.id, article.is_featured, article.title)}
-                        disabled={isTogglingFeatured === article.id}
-                      >
-                        {isTogglingFeatured === article.id ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Star className="h-4 w-4 mr-2" fill={article.is_featured ? "currentColor" : "none"} />
-                        )}
-                        {article.is_featured ? "Retirer de la une" : "Ajouter à la une"}
-                      </DropdownMenuItem>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer
-                          </DropdownMenuItem>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Supprimer cet article ?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Cette action est irréversible. L&apos;article sera définitivement supprimé de la base de données.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleDelete(article.id, article.title)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  {/* Actions dropdown & Copy link */}
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Copier le lien de publication"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://www.afrotentacles.com/article/${article.slug}`);
+                        toast.success("Lien copié", {
+                          description: "Le lien de l'article a été copié dans le presse-papiers."
+                        });
+                      }}
+                    >
+                      <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" disabled={isDeleting === article.id}>
+                          {isDeleting === article.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <MoreVertical className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/article/${article.slug}`} target="_blank">
+                            <Eye className="h-4 w-4 mr-2" />
+                            Voir
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            navigator.clipboard.writeText(`https://www.afrotentacles.com/article/${article.slug}`);
+                            toast.success("Lien copié", {
+                              description: "Le lien de l'article a été copié dans le presse-papiers."
+                            });
+                          }}
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copier le lien
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/editer/${article.id}`}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Modifier
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleToggleFeatured(article.id, article.is_featured, article.title)}
+                          disabled={isTogglingFeatured === article.id}
+                        >
+                          {isTogglingFeatured === article.id ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Star className="h-4 w-4 mr-2" fill={article.is_featured ? "currentColor" : "none"} />
+                          )}
+                          {article.is_featured ? "Retirer de la une" : "Ajouter à la une"}
+                        </DropdownMenuItem>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              onSelect={(e) => e.preventDefault()}
+                              className="text-destructive focus:text-destructive"
                             >
+                              <Trash2 className="h-4 w-4 mr-2" />
                               Supprimer
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Supprimer cet article ?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Cette action est irréversible. L&apos;article sera définitivement supprimé de la base de données.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDelete(article.id, article.title)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Supprimer
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
 
                 {/* Footer */}
