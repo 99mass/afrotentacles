@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { PlusCircle, Pencil, Trash2, Loader2, Link as LinkIcon, Twitter, Linkedin, Facebook, Instagram, Youtube, Github, Send, Mail, MessageCircle, Upload, Video, FileVideo, X, Play, Eye, EyeOff, Copy, Check, Tv } from "lucide-react"
 import { toast } from "sonner"
-import { createSocialLink, updateSocialLink, deleteSocialLink, updateYouTubeSettings, updateContactLinks, updateVideo, deleteVideo, type SocialLink, type YouTubeSettings, type ContactLinks, type Video as VideoType } from "@/lib/actions/settings"
+import { createSocialLink, updateSocialLink, deleteSocialLink, updateYouTubeSettings, updateContactLinks, updateVideo, deleteVideo, getSignedVideoUploadUrl, saveVideoMetadata, type SocialLink, type YouTubeSettings, type ContactLinks, type Video as VideoType } from "@/lib/actions/settings"
 import { Progress } from "@/components/ui/progress"
 import {
   Dialog,
@@ -245,15 +245,17 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
     setUploadProgress(0)
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('title', videoTitle || file.name.replace(/\.[^/.]+$/, ''))
-      formData.append('description', videoDescription)
-
-      // Use XMLHttpRequest for upload progress
-      const xhr = new XMLHttpRequest()
+      // 1. Get signed upload URL from server action
+      const signedUrlResult = await getSignedVideoUploadUrl(file.name, file.type)
+      if (signedUrlResult.error || !signedUrlResult.signedUrl) {
+        throw new Error(signedUrlResult.error || "Impossible d'obtenir une URL d'upload")
+      }
       
-      const uploadPromise = new Promise<any>((resolve, reject) => {
+      const { signedUrl, storagePath, publicUrl } = signedUrlResult
+
+      // 2. Upload file directly to Supabase Storage signed URL
+      const xhr = new XMLHttpRequest()
+      const uploadPromise = new Promise<void>((resolve, reject) => {
         xhr.upload.addEventListener('progress', (e) => {
           if (e.lengthComputable) {
             const percent = Math.round((e.loaded / e.total) * 100)
@@ -263,34 +265,42 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
 
         xhr.addEventListener('load', () => {
           if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(JSON.parse(xhr.responseText))
+            resolve()
           } else {
-            try {
-              const error = JSON.parse(xhr.responseText)
-              reject(new Error(error.error || 'Erreur lors de l\'upload'))
-            } catch {
-              reject(new Error('Erreur lors de l\'upload'))
-            }
+            reject(new Error("Erreur lors de l'envoi du fichier vers le stockage"))
           }
         })
 
-        xhr.addEventListener('error', () => reject(new Error('Erreur réseau')))
+        xhr.addEventListener('error', () => reject(new Error('Erreur réseau lors de l\'upload')))
         xhr.addEventListener('abort', () => reject(new Error('Upload annulé')))
 
-        xhr.open('POST', '/api/upload-video')
-        xhr.send(formData)
+        xhr.open('PUT', signedUrl)
+        xhr.setRequestHeader('Content-Type', file.type)
+        xhr.send(file)
       })
 
-      const result = await uploadPromise
+      await uploadPromise
 
-      if (result.success && result.video) {
-        setVideos(prev => [result.video, ...prev])
-        toast.success('Vidéo uploadée avec succès !')
-        setVideoTitle('')
-        setVideoDescription('')
-      } else {
-        throw new Error(result.error || 'Erreur inconnue')
+      // 3. Save metadata to DB using server action
+      const metadataResult = await saveVideoMetadata({
+        title: videoTitle || file.name.replace(/\.[^/.]+$/, ''),
+        description: videoDescription,
+        url: publicUrl,
+        storage_path: storagePath,
+        file_name: file.name,
+        file_size: file.size,
+        file_type: file.type,
+        is_active: true
+      })
+
+      if (metadataResult.error || !metadataResult.video) {
+        throw new Error(metadataResult.error || 'Erreur lors de la sauvegarde des métadonnées')
       }
+
+      setVideos(prev => [metadataResult.video, ...prev])
+      toast.success('Vidéo uploadée avec succès !')
+      setVideoTitle('')
+      setVideoDescription('')
     } catch (error: any) {
       toast.error(error.message || 'Erreur lors de l\'upload de la vidéo')
     } finally {

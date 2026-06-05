@@ -302,3 +302,61 @@ export async function deleteVideo(id: string, storagePath: string) {
   revalidatePath("/admin/parametres")
   return { success: true }
 }
+
+export async function getSignedVideoUploadUrl(fileName: string, fileType: string) {
+  const { createClient: createSupabaseClient } = await import("@supabase/supabase-js")
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const adminSupabase = createSupabaseClient(supabaseUrl, supabaseServiceKey)
+  
+  const timestamp = Date.now()
+  const sanitizedName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
+  const storagePath = `videos/${timestamp}-${sanitizedName}`
+
+  const { data, error } = await adminSupabase.storage
+    .from("media")
+    .createSignedUploadUrl(storagePath)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  const { data: publicUrlData } = adminSupabase.storage
+    .from("media")
+    .getPublicUrl(storagePath)
+
+  return { 
+    success: true, 
+    signedUrl: data.signedUrl, 
+    token: data.token, 
+    storagePath, 
+    publicUrl: publicUrlData.publicUrl 
+  }
+}
+
+export async function saveVideoMetadata(videoData: {
+  title: string
+  description: string
+  url: string
+  storage_path: string
+  file_name: string
+  file_size: number
+  file_type: string
+  is_active: boolean
+}) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("videos")
+    .insert([videoData])
+    .select()
+    .single()
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath("/")
+  revalidatePath("/admin/parametres")
+  return { success: true, video: data as Video }
+}
