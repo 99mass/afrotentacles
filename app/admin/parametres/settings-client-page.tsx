@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { PlusCircle, Pencil, Trash2, Loader2, Link as LinkIcon, Twitter, Linkedin, Facebook, Instagram, Youtube, Github, Send, Mail, MessageCircle } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { PlusCircle, Pencil, Trash2, Loader2, Link as LinkIcon, Twitter, Linkedin, Facebook, Instagram, Youtube, Github, Send, Mail, MessageCircle, Upload, Video, FileVideo, X, Play, Eye, EyeOff, Copy, Check, Tv } from "lucide-react"
 import { toast } from "sonner"
-import { createSocialLink, updateSocialLink, deleteSocialLink, updateYouTubeSettings, updateContactLinks, type SocialLink, type YouTubeSettings, type ContactLinks } from "@/lib/actions/settings"
+import { createSocialLink, updateSocialLink, deleteSocialLink, updateYouTubeSettings, updateContactLinks, updateVideo, deleteVideo, type SocialLink, type YouTubeSettings, type ContactLinks, type Video as VideoType } from "@/lib/actions/settings"
+import { Progress } from "@/components/ui/progress"
 import {
   Dialog,
   DialogContent,
@@ -28,6 +30,7 @@ interface SettingsClientPageProps {
   initialLinks: SocialLink[]
   initialYouTubeSettings: YouTubeSettings | null
   initialContactLinks: ContactLinks | null
+  initialVideos: VideoType[]
 }
 
 const AVAILABLE_ICONS = [
@@ -41,7 +44,7 @@ const AVAILABLE_ICONS = [
   { id: "Link", name: "Autre lien", icon: LinkIcon },
 ]
 
-export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initialContactLinks }: SettingsClientPageProps) {
+export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initialContactLinks, initialVideos }: SettingsClientPageProps) {
   const [links, setLinks] = useState<SocialLink[]>(initialLinks)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -49,7 +52,7 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
   
   // YouTube state
   const [youtubeSettings, setYouTubeSettings] = useState<YouTubeSettings>(
-    initialYouTubeSettings || { url: "", is_active: false, articles_count: 3 }
+    initialYouTubeSettings || { url: "", is_active: false, articles_count: 3, video_type: 'youtube', uploaded_video_url: '' }
   )
   const [isYouTubeSaving, setIsYouTubeSaving] = useState(false)
 
@@ -65,6 +68,21 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
     }
   )
   const [isContactSaving, setIsContactSaving] = useState(false)
+
+  // Videos state
+  const [videos, setVideos] = useState<VideoType[]>(initialVideos)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [videoTitle, setVideoTitle] = useState("")
+  const [videoDescription, setVideoDescription] = useState("")
+  const [editingVideo, setEditingVideo] = useState<VideoType | null>(null)
+  const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false)
+  const [isVideoSaving, setIsVideoSaving] = useState(false)
+  const [playingVideo, setPlayingVideo] = useState<VideoType | null>(null)
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false)
+  const [copiedVideoId, setCopiedVideoId] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   const [formData, setFormData] = useState({
     platform: "",
@@ -196,6 +214,214 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
       toast.error(error.message || "Une erreur est survenue")
     } finally {
       setIsContactSaving(false)
+    }
+  }
+
+  // ========== Video Handlers ==========
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const sizes = ['B', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  const handleVideoUpload = async (file: File) => {
+    // Validate file type
+    const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-msvideo']
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Format vidéo non supporté. Formats acceptés : MP4, WebM, OGG, MOV, AVI')
+      return
+    }
+
+    // Validate file size (500MB max)
+    const maxSize = 500 * 1024 * 1024
+    if (file.size > maxSize) {
+      toast.error('La vidéo dépasse la taille maximale de 500 MB')
+      return
+    }
+
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('title', videoTitle || file.name.replace(/\.[^/.]+$/, ''))
+      formData.append('description', videoDescription)
+
+      // Use XMLHttpRequest for upload progress
+      const xhr = new XMLHttpRequest()
+      
+      const uploadPromise = new Promise<any>((resolve, reject) => {
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100)
+            setUploadProgress(percent)
+          }
+        })
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText))
+          } else {
+            try {
+              const error = JSON.parse(xhr.responseText)
+              reject(new Error(error.error || 'Erreur lors de l\'upload'))
+            } catch {
+              reject(new Error('Erreur lors de l\'upload'))
+            }
+          }
+        })
+
+        xhr.addEventListener('error', () => reject(new Error('Erreur réseau')))
+        xhr.addEventListener('abort', () => reject(new Error('Upload annulé')))
+
+        xhr.open('POST', '/api/upload-video')
+        xhr.send(formData)
+      })
+
+      const result = await uploadPromise
+
+      if (result.success && result.video) {
+        setVideos(prev => [result.video, ...prev])
+        toast.success('Vidéo uploadée avec succès !')
+        setVideoTitle('')
+        setVideoDescription('')
+      } else {
+        throw new Error(result.error || 'Erreur inconnue')
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de l\'upload de la vidéo')
+    } finally {
+      setIsUploading(false)
+      setUploadProgress(0)
+    }
+  }
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const files = e.dataTransfer.files
+    if (files.length > 0) {
+      handleVideoUpload(files[0])
+    }
+  }, [videoTitle, videoDescription])
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      handleVideoUpload(files[0])
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleVideoEdit = (video: VideoType) => {
+    setEditingVideo(video)
+    setIsVideoDialogOpen(true)
+  }
+
+  const handleVideoUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingVideo) return
+
+    setIsVideoSaving(true)
+    try {
+      const result = await updateVideo(editingVideo.id, {
+        title: editingVideo.title,
+        description: editingVideo.description,
+        is_active: editingVideo.is_active
+      })
+      if (result.error) throw new Error(result.error)
+      
+      setVideos(prev => prev.map(v => v.id === editingVideo.id ? { ...v, ...editingVideo } : v))
+      setIsVideoDialogOpen(false)
+      setEditingVideo(null)
+      toast.success('Vidéo mise à jour avec succès')
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de la mise à jour')
+    } finally {
+      setIsVideoSaving(false)
+    }
+  }
+
+  const handleVideoDelete = async (video: VideoType) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer la vidéo "${video.title}" ? Cette action est irréversible.`)) return
+
+    try {
+      const result = await deleteVideo(video.id, video.storage_path)
+      if (result.error) throw new Error(result.error)
+      
+      setVideos(prev => prev.filter(v => v.id !== video.id))
+      toast.success('Vidéo supprimée avec succès')
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de la suppression')
+    }
+  }
+
+  const handleToggleVideoActive = async (video: VideoType) => {
+    try {
+      const result = await updateVideo(video.id, { is_active: !video.is_active })
+      if (result.error) throw new Error(result.error)
+      
+      setVideos(prev => prev.map(v => v.id === video.id ? { ...v, is_active: !v.is_active } : v))
+      toast.success(video.is_active ? 'Vidéo désactivée' : 'Vidéo activée')
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de la mise à jour')
+    }
+  }
+
+  const handleCopyVideoLink = async (video: VideoType) => {
+    try {
+      await navigator.clipboard.writeText(video.url)
+      setCopiedVideoId(video.id)
+      toast.success('Lien copié dans le presse-papier !')
+      setTimeout(() => setCopiedVideoId(null), 2000)
+    } catch {
+      toast.error('Impossible de copier le lien')
+    }
+  }
+
+  const handlePlayVideo = (video: VideoType) => {
+    setPlayingVideo(video)
+    setIsPlayerOpen(true)
+  }
+
+  const handleSetAsLesplusLus = async (video: VideoType) => {
+    setIsYouTubeSaving(true)
+    try {
+      const updatedSettings: YouTubeSettings = {
+        ...youtubeSettings,
+        is_active: true,
+        video_type: 'uploaded',
+        uploaded_video_url: video.url,
+      }
+      const result = await updateYouTubeSettings(updatedSettings)
+      if (result.error) throw new Error(result.error)
+      
+      setYouTubeSettings(updatedSettings)
+      toast.success(`"${video.title}" définie comme vidéo de la section Les plus lus !`)
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de la mise à jour')
+    } finally {
+      setIsYouTubeSaving(false)
     }
   }
 
@@ -377,20 +603,19 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
         </DialogContent>
       </Dialog>
 
-      {/* YouTube Settings Section */}
+      {/* Video Settings Section - "Les plus lus" */}
       <div className="mt-12">
-        <h2 className="text-xl font-semibold mb-6">Vidéo YouTube - Section "Les plus lus"</h2>
+        <h2 className="text-xl font-semibold mb-6">Vidéo - Section "Les plus lus"</h2>
         
         <div className="bg-card rounded-lg border border-border shadow-sm p-6 max-w-2xl">
           <div className="space-y-6">
-            {/* Enable/Disable YouTube */}
+            {/* Enable/Disable Video */}
             <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border">
               <div>
-                <Label className="text-base font-semibold cursor-pointer">Activer la vidéo YouTube</Label>
-                {/* <p className="text-sm text-muted-foreground mt-1">
-                  Si activée : affiche 3 articles + vidéo YouTube<br/>
-                  Si désactivée : affiche 5 articles
-                </p> */}
+                <Label className="text-base font-semibold cursor-pointer">Activer la vidéo</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Affiche une vidéo dans la sidebar "Les plus lus"
+                </p>
               </div>
               <Switch 
                 checked={youtubeSettings.is_active}
@@ -398,62 +623,137 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
               />
             </div>
 
-            {/* YouTube URL Input */}
-            <div className="space-y-2">
-              <Label htmlFor="youtube_url">Lien YouTube</Label>
-              <Input 
-                id="youtube_url" 
-                value={youtubeSettings.url}
-                onChange={(e) => setYouTubeSettings({...youtubeSettings, url: e.target.value})}
-                placeholder="Coller l'URL YouTube" 
-                disabled={!youtubeSettings.is_active}
-              />
-              {/* <p className="text-xs text-muted-foreground">
-                Formats acceptés:
-                <br/>• https://www.youtube.com/watch?v=VIDEO_ID
-                <br/>• https://youtu.be/VIDEO_ID
-                <br/>• https://www.youtube.com/embed/VIDEO_ID
-                <br/>• VIDEO_ID seul
-              </p> */}
-            </div>
-
-            {/* Article Count Selector */}
-            {/* <div className="space-y-2">
-              <Label htmlFor="articles_count">Nombre d'articles à afficher (quand la vidéo est active)</Label>
-              <Select 
-                value={youtubeSettings.articles_count.toString()} 
-                onValueChange={(value) => setYouTubeSettings({...youtubeSettings, articles_count: parseInt(value)})}
-                disabled={!youtubeSettings.is_active}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir le nombre d'articles" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 article</SelectItem>
-                  <SelectItem value="2">2 articles</SelectItem>
-                  <SelectItem value="3">3 articles</SelectItem>
-                  <SelectItem value="4">4 articles</SelectItem>
-                  <SelectItem value="5">5 articles</SelectItem>
-                </SelectContent>
-              </Select>
-            </div> */}
-
-            {/* Preview */}
-            {youtubeSettings.is_active && youtubeSettings.url && (
-              <div className="space-y-2">
-                <Label>Aperçu</Label>
-                <div className="bg-black rounded-lg overflow-hidden aspect-video">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src={convertYouTubeToEmbed(youtubeSettings.url)}
-                    title="Aperçu vidéo YouTube"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
+            {youtubeSettings.is_active && (
+              <>
+                {/* Video Source Selector */}
+                <div className="space-y-3">
+                  <Label>Source de la vidéo</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setYouTubeSettings({...youtubeSettings, video_type: 'youtube'})}
+                      className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left ${
+                        (youtubeSettings.video_type || 'youtube') === 'youtube'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-muted-foreground/30'
+                      }`}
+                    >
+                      <Youtube className={`h-5 w-5 flex-shrink-0 ${(youtubeSettings.video_type || 'youtube') === 'youtube' ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <div>
+                        <p className="text-sm font-medium">YouTube</p>
+                        <p className="text-xs text-muted-foreground">Lien YouTube</p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setYouTubeSettings({...youtubeSettings, video_type: 'uploaded'})}
+                      className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all text-left ${
+                        youtubeSettings.video_type === 'uploaded'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-muted-foreground/30'
+                      }`}
+                    >
+                      <Upload className={`h-5 w-5 flex-shrink-0 ${youtubeSettings.video_type === 'uploaded' ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <div>
+                        <p className="text-sm font-medium">Vidéo uploadée</p>
+                        <p className="text-xs text-muted-foreground">Fichier uploadé</p>
+                      </div>
+                    </button>
+                  </div>
                 </div>
-              </div>
+
+                {/* YouTube URL Input */}
+                {(youtubeSettings.video_type || 'youtube') === 'youtube' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="youtube_url">Lien YouTube</Label>
+                    <Input 
+                      id="youtube_url" 
+                      value={youtubeSettings.url}
+                      onChange={(e) => setYouTubeSettings({...youtubeSettings, url: e.target.value})}
+                      placeholder="Coller l'URL YouTube" 
+                    />
+                  </div>
+                )}
+
+                {/* Uploaded Video Selector */}
+                {youtubeSettings.video_type === 'uploaded' && (
+                  <div className="space-y-3">
+                    <Label>Vidéo sélectionnée</Label>
+                    {youtubeSettings.uploaded_video_url ? (
+                      <div className="rounded-lg border border-border p-3 bg-muted/20">
+                        <div className="flex items-center gap-3">
+                          <div className="relative flex-shrink-0 w-24 aspect-video rounded overflow-hidden bg-black">
+                            <video 
+                              src={youtubeSettings.uploaded_video_url} 
+                              className="w-full h-full object-cover"
+                              preload="metadata"
+                              muted
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {videos.find(v => v.url === youtubeSettings.uploaded_video_url)?.title || 'Vidéo sélectionnée'}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {videos.find(v => v.url === youtubeSettings.uploaded_video_url)?.file_name || ''}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setYouTubeSettings({...youtubeSettings, uploaded_video_url: ''})}
+                            className="h-8 text-xs text-destructive hover:text-destructive"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-lg border border-dashed border-border p-6 text-center">
+                        <Upload className="h-8 w-8 mx-auto text-muted-foreground/40 mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Aucune vidéo sélectionnée.
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Utilisez le bouton "Mettre en Les plus lus" sur une vidéo uploadée ci-dessous.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Preview */}
+                {(youtubeSettings.video_type || 'youtube') === 'youtube' && youtubeSettings.url && (
+                  <div className="space-y-2">
+                    <Label>Aperçu</Label>
+                    <div className="bg-black rounded-lg overflow-hidden aspect-video">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src={convertYouTubeToEmbed(youtubeSettings.url)}
+                        title="Aperçu vidéo YouTube"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  </div>
+                )}
+
+                {youtubeSettings.video_type === 'uploaded' && youtubeSettings.uploaded_video_url && (
+                  <div className="space-y-2">
+                    <Label>Aperçu</Label>
+                    <div className="bg-black rounded-lg overflow-hidden aspect-video">
+                      <video
+                        src={youtubeSettings.uploaded_video_url}
+                        controls
+                        className="w-full h-full"
+                        preload="metadata"
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Save Button */}
@@ -463,7 +763,7 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
               className="w-full"
             >
               {isYouTubeSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Enregistrer les paramètres YouTube
+              Enregistrer les paramètres vidéo
             </Button>
           </div>
         </div>
@@ -579,6 +879,376 @@ export function SettingsClientPage({ initialLinks, initialYouTubeSettings, initi
           </Button>
         </div>
       </div>
+
+      {/* Video Upload Section */}
+      <div className="mt-12">
+        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+          <Video className="h-5 w-5" />
+          Vidéos Uploadées
+        </h2>
+        
+        <div className="bg-card rounded-lg border border-border shadow-sm p-6 max-w-4xl space-y-6">
+          {/* Upload Title & Description */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="video_title">Titre de la vidéo</Label>
+              <Input 
+                id="video_title" 
+                value={videoTitle}
+                onChange={(e) => setVideoTitle(e.target.value)}
+                placeholder="Titre de la vidéo (optionnel)"
+                disabled={isUploading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="video_description">Description</Label>
+              <Input 
+                id="video_description" 
+                value={videoDescription}
+                onChange={(e) => setVideoDescription(e.target.value)}
+                placeholder="Description courte (optionnel)"
+                disabled={isUploading}
+              />
+            </div>
+          </div>
+
+          {/* Drag & Drop Upload Zone */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => !isUploading && fileInputRef.current?.click()}
+            className={`relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 ${
+              isDragging 
+                ? 'border-primary bg-primary/5 scale-[1.02]' 
+                : isUploading 
+                  ? 'border-muted cursor-not-allowed opacity-60' 
+                  : 'border-border hover:border-primary/50 hover:bg-muted/30'
+            }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-msvideo"
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={isUploading}
+            />
+            
+            {isUploading ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-center">
+                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Upload en cours... {uploadProgress}%</p>
+                  <Progress value={uploadProgress} className="h-2 max-w-xs mx-auto" />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-center">
+                  <div className="p-4 rounded-full bg-primary/10">
+                    <Upload className="h-8 w-8 text-primary" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-base font-medium">
+                    Glissez-déposez une vidéo ici
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    ou cliquez pour parcourir vos fichiers
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Formats : MP4, WebM, OGG, MOV, AVI — Max 500 MB
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Videos List */}
+          {videos.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                {videos.length} vidéo{videos.length > 1 ? 's' : ''} uploadée{videos.length > 1 ? 's' : ''}
+              </h3>
+              <div className="space-y-3">
+                {videos.map((video) => (
+                  <div 
+                    key={video.id} 
+                    className={`group bg-muted/30 rounded-lg border p-4 hover:bg-muted/50 transition-all duration-200 ${
+                      youtubeSettings.video_type === 'uploaded' && youtubeSettings.uploaded_video_url === video.url
+                        ? 'border-primary/50 bg-primary/5'
+                        : 'border-border'
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Video Preview Thumbnail - Click to play */}
+                      <div 
+                        className="relative flex-shrink-0 w-40 aspect-video rounded-lg overflow-hidden bg-black cursor-pointer"
+                        onClick={() => handlePlayVideo(video)}
+                      >
+                        <video 
+                          src={video.url} 
+                          className="w-full h-full object-cover"
+                          preload="metadata"
+                          muted
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
+                            <Play className="h-6 w-6 text-white" fill="white" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Video Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h4 className="font-medium truncate">{video.title}</h4>
+                            {video.description && (
+                              <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">{video.description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {youtubeSettings.video_type === 'uploaded' && youtubeSettings.uploaded_video_url === video.url && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary gap-1">
+                                <Tv className="h-3 w-3" />
+                                Les plus lus
+                              </span>
+                            )}
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              video.is_active 
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                            }`}>
+                              {video.is_active ? "Actif" : "Inactif"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <FileVideo className="h-3 w-3" />
+                            {video.file_name}
+                          </span>
+                          <span>{formatFileSize(video.file_size)}</span>
+                          <span>{new Date(video.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        </div>
+                        
+                        {/* Actions */}
+                        <div className="flex items-center gap-1 mt-3 flex-wrap">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handlePlayVideo(video)}
+                            className="h-8 text-xs gap-1.5"
+                          >
+                            <Play className="h-3.5 w-3.5" />
+                            Lire
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleCopyVideoLink(video)}
+                            className="h-8 text-xs gap-1.5"
+                          >
+                            {copiedVideoId === video.id ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                            {copiedVideoId === video.id ? 'Copié !' : 'Copier le lien'}
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleSetAsLesplusLus(video)}
+                            disabled={isYouTubeSaving}
+                            className={`h-8 text-xs gap-1.5 ${
+                              youtubeSettings.video_type === 'uploaded' && youtubeSettings.uploaded_video_url === video.url
+                                ? 'text-primary'
+                                : ''
+                            }`}
+                          >
+                            <Tv className="h-3.5 w-3.5" />
+                            {youtubeSettings.video_type === 'uploaded' && youtubeSettings.uploaded_video_url === video.url
+                              ? 'Vidéo Les plus lus ✓'
+                              : 'Mettre en Les plus lus'}
+                          </Button>
+                          <div className="border-l border-border h-4 mx-1" />
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleToggleVideoActive(video)}
+                            className="h-8 text-xs gap-1.5"
+                          >
+                            {video.is_active ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                            {video.is_active ? 'Désactiver' : 'Activer'}
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleVideoEdit(video)}
+                            className="h-8 text-xs gap-1.5"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Modifier
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleVideoDelete(video)}
+                            className="h-8 text-xs gap-1.5 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Supprimer
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {videos.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <FileVideo className="h-12 w-12 mx-auto mb-3 opacity-30" />
+              <p className="text-sm">Aucune vidéo uploadée pour le moment.</p>
+              <p className="text-xs mt-1">Uploadez votre première vidéo ci-dessus.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Video Edit Dialog */}
+      <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
+        <DialogContent>
+          <form onSubmit={handleVideoUpdate}>
+            <DialogHeader>
+              <DialogTitle>Modifier la vidéo</DialogTitle>
+              <DialogDescription>
+                Modifier les informations de la vidéo.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {editingVideo && (
+              <div className="space-y-4 py-4">
+                {/* Video Preview */}
+                <div className="rounded-lg overflow-hidden bg-black aspect-video">
+                  <video 
+                    src={editingVideo.url} 
+                    controls 
+                    className="w-full h-full"
+                    preload="metadata"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit_video_title">Titre *</Label>
+                  <Input 
+                    id="edit_video_title" 
+                    value={editingVideo.title}
+                    onChange={(e) => setEditingVideo({...editingVideo, title: e.target.value})}
+                    placeholder="Titre de la vidéo"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit_video_desc">Description</Label>
+                  <Textarea 
+                    id="edit_video_desc" 
+                    value={editingVideo.description}
+                    onChange={(e) => setEditingVideo({...editingVideo, description: e.target.value})}
+                    placeholder="Description de la vidéo"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <Label htmlFor="edit_video_active" className="cursor-pointer">Vidéo active</Label>
+                  <Switch 
+                    id="edit_video_active" 
+                    checked={editingVideo.is_active}
+                    onCheckedChange={(checked) => setEditingVideo({...editingVideo, is_active: checked})}
+                  />
+                </div>
+
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>Fichier : {editingVideo.file_name}</p>
+                  <p>Taille : {formatFileSize(editingVideo.file_size)}</p>
+                  <p>Uploadée le : {new Date(editingVideo.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsVideoDialogOpen(false)}>
+                Annuler
+              </Button>
+              <Button type="submit" disabled={isVideoSaving}>
+                {isVideoSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Mettre à jour
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Video Player Dialog */}
+      <Dialog open={isPlayerOpen} onOpenChange={(open) => { setIsPlayerOpen(open); if (!open) setPlayingVideo(null) }}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle>{playingVideo?.title || 'Lecture vidéo'}</DialogTitle>
+            {playingVideo?.description && (
+              <DialogDescription>{playingVideo.description}</DialogDescription>
+            )}
+          </DialogHeader>
+          
+          {playingVideo && (
+            <div className="px-6 pb-6 space-y-4">
+              <div className="rounded-lg overflow-hidden bg-black aspect-video">
+                <video 
+                  src={playingVideo.url} 
+                  controls 
+                  autoPlay
+                  className="w-full h-full"
+                  preload="auto"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-muted-foreground flex items-center gap-3">
+                  <span className="flex items-center gap-1">
+                    <FileVideo className="h-3 w-3" />
+                    {playingVideo.file_name}
+                  </span>
+                  <span>{formatFileSize(playingVideo.file_size)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleCopyVideoLink(playingVideo)}
+                    className="h-8 text-xs gap-1.5"
+                  >
+                    {copiedVideoId === playingVideo.id ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copiedVideoId === playingVideo.id ? 'Copié !' : 'Copier le lien'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleSetAsLesplusLus(playingVideo)}
+                    disabled={isYouTubeSaving}
+                    className="h-8 text-xs gap-1.5"
+                  >
+                    <Tv className="h-3.5 w-3.5" />
+                    Mettre en Les plus lus
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

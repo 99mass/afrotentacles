@@ -98,6 +98,8 @@ export interface YouTubeSettings {
   url: string
   is_active: boolean
   articles_count: number
+  video_type: 'youtube' | 'uploaded'
+  uploaded_video_url: string
 }
 
 export async function getYouTubeSettings(): Promise<YouTubeSettings | null> {
@@ -217,4 +219,86 @@ export async function updateContactLinks(settings: ContactLinks) {
   revalidatePath("/")
   revalidatePath("/admin/parametres")
   return { success: true, data: result.data }
+}
+
+// ========== Videos ==========
+
+export interface Video {
+  id: string
+  title: string
+  description: string
+  url: string
+  storage_path: string
+  file_name: string
+  file_size: number
+  file_type: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export async function getVideos(): Promise<Video[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("videos")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Error fetching videos:", error)
+    return []
+  }
+
+  return data as Video[]
+}
+
+export async function updateVideo(id: string, videoData: Partial<Video>) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("videos")
+    .update({ ...videoData, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath("/")
+  revalidatePath("/admin/parametres")
+  return { success: true, data }
+}
+
+export async function deleteVideo(id: string, storagePath: string) {
+  const { createClient: createSupabaseClient } = await import("@supabase/supabase-js")
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const adminSupabase = createSupabaseClient(supabaseUrl, supabaseServiceKey)
+
+  // Delete from storage
+  if (storagePath) {
+    const { error: storageError } = await adminSupabase.storage
+      .from("media")
+      .remove([storagePath])
+    
+    if (storageError) {
+      console.error("Error deleting from storage:", storageError)
+    }
+  }
+
+  // Delete from database
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("videos")
+    .delete()
+    .eq("id", id)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath("/")
+  revalidatePath("/admin/parametres")
+  return { success: true }
 }

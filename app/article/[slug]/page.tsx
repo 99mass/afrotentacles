@@ -23,6 +23,33 @@ function getEmbedUrl(url: string) {
   return url
 }
 
+function processLinksInHtml(html: string) {
+  if (!html) return html
+  
+  // Replace <a ...> tags to add target="_blank" and rel="noopener noreferrer"
+  return html.replace(/<a\b([^>]*)/gi, (match, attributes) => {
+    let newAttributes = attributes;
+    
+    // Check if target is already present
+    if (!/target=/i.test(newAttributes)) {
+      newAttributes += ' target="_blank"';
+    } else {
+      // Replace existing target with target="_blank"
+      newAttributes = newAttributes.replace(/target="[^"]*"/gi, 'target="_blank"');
+    }
+    
+    // Check if rel is already present
+    if (!/rel=/i.test(newAttributes)) {
+      newAttributes += ' rel="noopener noreferrer"';
+    } else {
+      // Replace existing rel with rel="noopener noreferrer"
+      newAttributes = newAttributes.replace(/rel="[^"]*"/gi, 'rel="noopener noreferrer"');
+    }
+    
+    return `<a${newAttributes}`;
+  });
+}
+
 interface ArticlePageProps {
   params: Promise<{ slug: string }>
 }
@@ -313,7 +340,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                       {blocks.map((block, idx) => (
                         <div key={block.id || idx}>
                           {block.type === 'text' && (
-                            <div className="article-content" dangerouslySetInnerHTML={{ __html: block.content }} />
+                            <div className="article-content" dangerouslySetInnerHTML={{ __html: processLinksInHtml(block.content) }} />
                           )}
                           {block.type === 'image' && block.url && (
                             <figure className="my-8">
@@ -372,7 +399,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                       
                       <div 
                         className="prose prose-lg max-w-none prose-headings:font-serif prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-p:text-foreground prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline font-serif"
-                        dangerouslySetInnerHTML={{ __html: article.content }}
+                        dangerouslySetInnerHTML={{ __html: processLinksInHtml(article.content) }}
                       />
                       
                       {images.length > 1 && (
