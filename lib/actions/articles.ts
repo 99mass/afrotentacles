@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import type { Article } from "@/lib/data"
 import { revalidatePath } from "next/cache"
 
@@ -404,8 +405,106 @@ export async function getAllArticlesAdmin() {
   })
 }
 
+function getStoragePathFromUrl(url: string): string | null {
+  if (!url) return null
+  const storageMarker = "/storage/v1/object/public/media/"
+  const index = url.indexOf(storageMarker)
+  if (index !== -1) {
+    return decodeURIComponent(url.substring(index + storageMarker.length))
+  }
+  return null
+}
+
+async function deleteStorageFiles(urls: string[]) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  if (!supabaseUrl || !supabaseServiceKey) return
+
+  const supabaseAdmin = createSupabaseClient(supabaseUrl, supabaseServiceKey)
+  
+  const pathsToDelete = urls
+    .map(getStoragePathFromUrl)
+    .filter((path): path is string => !!path)
+
+  if (pathsToDelete.length > 0) {
+    try {
+      const { data, error } = await supabaseAdmin.storage
+        .from('media')
+        .remove(pathsToDelete)
+        
+      if (error) {
+        console.error("Error deleting storage files from Supabase:", error)
+      } else {
+        console.log("Successfully deleted storage files from Supabase:", data)
+      }
+    } catch (e) {
+      console.error("Exception during storage files deletion:", e)
+    }
+  }
+}
+
+function collectUrlsFromArticle(article: any, mediaItems: any[]): string[] {
+  const urls: string[] = []
+  
+  if (article.image) {
+    urls.push(article.image)
+  }
+  
+  if (mediaItems && mediaItems.length > 0) {
+    mediaItems.forEach(item => {
+      if (item.url) {
+        urls.push(item.url)
+      }
+    })
+  }
+  
+  if (article.content) {
+    try {
+      const blocks = JSON.parse(article.content)
+      if (Array.isArray(blocks)) {
+        blocks.forEach(block => {
+          if (block && block.url) {
+            urls.push(block.url)
+          }
+        })
+      }
+    } catch (e) {
+      // Parse HTML fallback
+      const imgRegex = /<img[^>]+src="([^">]+)"/g
+      let match
+      while ((match = imgRegex.exec(article.content)) !== null) {
+        urls.push(match[1])
+      }
+    }
+  }
+  
+  return Array.from(new Set(urls))
+}
+
 export async function deleteArticle(id: string) {
   const supabase = await createClient()
+  
+  // Get storage files associated with article and delete them
+  try {
+    const { data: article } = await supabase
+      .from("articles")
+      .select("content, image")
+      .eq("id", id)
+      .single()
+      
+    const { data: mediaItems } = await supabase
+      .from("article_media")
+      .select("url")
+      .eq("article_id", id)
+      
+    if (article) {
+      const urls = collectUrlsFromArticle(article, mediaItems || [])
+      await deleteStorageFiles(urls)
+    }
+  } catch (e) {
+    console.error("Error fetching article files for deletion:", e)
+  }
+
   await supabase.from("articles").delete().eq("id", id)
   revalidatePath('/admin/articles')
   revalidatePath('/')
@@ -426,6 +525,34 @@ export async function toggleArticleFeatured(id: string, isFeatured: boolean) {
 
 export async function bulkDeleteArticles(ids: string[]) {
   const supabase = await createClient()
+
+  // Get storage files associated with articles and delete them
+  try {
+    const { data: articles } = await supabase
+      .from("articles")
+      .select("content, image")
+      .in("id", ids)
+      
+    const { data: mediaItems } = await supabase
+      .from("article_media")
+      .select("url")
+      .in("article_id", ids)
+      
+    const allUrls: string[] = []
+    if (articles && articles.length > 0) {
+      articles.forEach(article => {
+        const urls = collectUrlsFromArticle(article, mediaItems || [])
+        allUrls.push(...urls)
+      })
+    }
+    
+    if (allUrls.length > 0) {
+      await deleteStorageFiles(Array.from(new Set(allUrls)))
+    }
+  } catch (e) {
+    console.error("Error fetching articles files for bulk deletion:", e)
+  }
+
   const { error } = await supabase
     .from("articles")
     .delete()

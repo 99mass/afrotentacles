@@ -112,22 +112,36 @@ export default async function HomePage() {
                   </div>
                 </div>
 
-                {/* YouTube Video */}
-                {youtubeSettings?.is_active && youtubeSettings?.url && (
+                {/* Video Section */}
+                {youtubeSettings?.is_active && (
+                  ((!youtubeSettings.video_type || youtubeSettings.video_type === 'youtube') && youtubeSettings.url) ||
+                  (youtubeSettings.video_type === 'uploaded' && youtubeSettings.uploaded_video_url)
+                ) && (
                   <div className="mb-8 font-serif">
                     <h3 className="text-sm font-bold uppercase tracking-wider border-b-2 border-primary pb-2 mb-4 font-serif text-foreground">
                       À regarder
                     </h3>
                     <div className="bg-black rounded-lg overflow-hidden aspect-video mb-6">
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        src={youtubeSettings.url}
-                        title="Vidéo YouTube"
-                        style={{ border: 'none' }}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
+                      {(!youtubeSettings.video_type || youtubeSettings.video_type === 'youtube') && youtubeSettings.url ? (
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={youtubeSettings.url}
+                          title="Vidéo YouTube"
+                          style={{ border: 'none' }}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                      ) : youtubeSettings.video_type === 'uploaded' && youtubeSettings.uploaded_video_url ? (
+                        <video
+                          src={youtubeSettings.uploaded_video_url}
+                          controls
+                          playsInline
+                          preload="auto"
+                          className="w-full h-full object-contain"
+                          style={{ maxHeight: '100%' }}
+                        />
+                      ) : null}
                     </div>
                   </div>
                 )}

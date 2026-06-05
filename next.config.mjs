@@ -3,6 +3,12 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '500mb',
+    },
+    proxyClientMaxBodySize: '500mb',
+  },
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -15,3 +21,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+

@@ -4,6 +4,7 @@ import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Paragraph from "@tiptap/extension-paragraph"
 import Text from "@tiptap/extension-text"
+import LinkExtension from "@tiptap/extension-link"
 import {
   Bold,
   Italic,
@@ -18,6 +19,7 @@ import {
   Undo,
   Redo,
   Type,
+  Link2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -63,6 +65,14 @@ export function RichTextEditor({ value, onChange, placeholder = "Rédigez votre 
           },
         },
       }),
+      LinkExtension.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          class: 'text-primary underline hover:opacity-80 transition-opacity',
+        },
+      }),
     ],
     content: value || "<p></p>",
     onUpdate: ({ editor }) => {
@@ -75,6 +85,31 @@ export function RichTextEditor({ value, onChange, placeholder = "Rédigez votre 
       },
     },
   })
+
+  const setLink = () => {
+    if (!editor) return
+    const previousUrl = editor.getAttributes('link').href
+    const url = window.prompt('Entrez l\'URL du lien :', previousUrl || '')
+
+    // Cancelled
+    if (url === null) {
+      return
+    }
+
+    // Empty
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run()
+      return
+    }
+
+    // Ensure URL has protocol if it's external and doesn't start with it
+    let formattedUrl = url
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/') && !url.startsWith('#')) {
+      formattedUrl = `https://${url}`
+    }
+
+    editor.chain().focus().extendMarkRange('link').setLink({ href: formattedUrl }).run()
+  }
 
   if (!editor) {
     return null
@@ -128,6 +163,16 @@ export function RichTextEditor({ value, onChange, placeholder = "Rédigez votre 
             title="Code inline"
           >
             <Code className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={setLink}
+            className={cn(buttonClass, editor.isActive("link") && activeButtonClass)}
+            title="Insérer un lien"
+          >
+            <Link2 className="h-4 w-4" />
           </Button>
         </div>
 
