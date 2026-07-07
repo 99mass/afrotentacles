@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import type { Metadata } from "next"
+import DownPage from "../down/page"
 
 export const metadata: Metadata = {
   title: "Administration - AfroTentacles",
@@ -14,6 +15,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
+  return DownPage();
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
