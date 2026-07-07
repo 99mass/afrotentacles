@@ -6,6 +6,7 @@ import { getYouTubeSettings } from "@/lib/actions/settings"
 import { FeaturedCarousel } from "@/components/featured-carousel"
 import Link from "next/link"
 import type { Metadata } from "next"
+import DownPage from "./down/page"
 
 const BASE_URL = 'https://afrotentacles.com'
 
@@ -33,6 +34,9 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
+
+  return DownPage();
+  
   // Fetch initial data simultaneously
   const [featuredArticles, latestArticles, popularArticles, categories, youtubeSettings] = await Promise.all([
     getFeaturedArticles(),
