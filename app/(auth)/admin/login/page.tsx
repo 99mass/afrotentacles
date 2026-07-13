@@ -12,7 +12,7 @@ import DownPage from "@/app/down/page"
 
 export default function AdminLoginPage() {
 
-  return DownPage();
+  // return DownPage();
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)

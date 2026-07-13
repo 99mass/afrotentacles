@@ -19,7 +19,7 @@ import { getCategories } from "@/lib/actions/categories"
 import DownPage from "../down/page"
 
 export default async function AdminDashboard() {
-  return DownPage();
+  // return DownPage();
   const articles = await getAllArticlesAdmin()
   const categories = await getCategories()
 

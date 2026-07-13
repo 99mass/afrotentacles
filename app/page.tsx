@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
 
-  return DownPage();
+  // return DownPage();
   
   // Fetch initial data simultaneously
   const [featuredArticles, latestArticles, popularArticles, categories, youtubeSettings] = await Promise.all([
