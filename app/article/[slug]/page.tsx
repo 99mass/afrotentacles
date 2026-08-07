@@ -11,6 +11,7 @@ import { Twitter, Linkedin, Facebook, FileText, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Script from "next/script"
 import "@/styles/article-content.css"
+import DownPage from "@/app/down/page"
 
 function getEmbedUrl(url: string) {
   if (!url) return url
@@ -100,6 +101,8 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
+
+  return DownPage();
   const { slug } = await params
   const article = await getArticleBySlug(slug)
 
