@@ -102,7 +102,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
 
-  return DownPage();
+  // return DownPage();
   const { slug } = await params
   const article = await getArticleBySlug(slug)
 
